@@ -166,7 +166,8 @@ CREATE TABLE `property` (
   `groundmapimage` varchar(300) NOT NULL,
   `totalfloor` varchar(50) NOT NULL,
   `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `isFeatured` int(11) DEFAULT NULL
+  `isFeatured` int(11) DEFAULT NULL,
+  `digital_signature` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -213,7 +214,8 @@ CREATE TABLE `user` (
   `uphone` varchar(20) NOT NULL,
   `upass` varchar(50) NOT NULL,
   `utype` varchar(50) NOT NULL,
-  `uimage` varchar(300) NOT NULL
+  `uimage` varchar(300) NOT NULL,
+  `public_key` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
