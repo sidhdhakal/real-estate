@@ -1,251 +1,237 @@
 <?php
+// WARNING: This version uses the insecure sha1() hashing method for demo purposes.
+
 include('verify_signature.php');
-include("config.php");
+include("config.php"); 
 
 $error = "";
 $msg = "";
 
-if (isset($_REQUEST['reg'])) {
-    $name = $_REQUEST['name'];
-    $email = $_REQUEST['email'];
-    $phone = $_REQUEST['phone'];
-    $pass = $_REQUEST['pass'];
-    $utype = $_REQUEST['utype'];
+if (isset($_POST['reg'])) {
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $pass = $_POST['pass']; // Get the plain-text password
+    $utype = $_POST['utype'];
 
-    $uimage = $_FILES['uimage']['name'];
-    $temp_name1 = $_FILES['uimage']['tmp_name'];
-    $pass = sha1($pass);
-
-    $query = "SELECT * FROM user where uemail='$email'";
-    $res = mysqli_query($con, $query);
-    $num = mysqli_num_rows($res);
-
-    if ($num == 1) {
-        $error = "<p class='alert alert-warning'>Email Id already Exist</p>";
+    if (empty($name) || empty($email) || empty($phone) || empty($pass) || empty($_FILES['uimage']['name'])) {
+        $error = "<p class='alert alert-warning'>Please fill all the required fields.</p>";
     } else {
-        if (!empty($name) && !empty($email) && !empty($phone) && !empty($pass) && !empty($uimage)) {
-            // Generate public and private keys
-            $key = generatePublicPrivateKey();
-            $public_key = $key["public_key"];
-            $private_key = $key["private_key"];
-
-            // Save the public key in the database
-            $sql = "INSERT INTO user (uname, uemail, uphone, upass, utype, uimage, public_key) 
-                    VALUES ('$name', '$email', '$phone', '$pass', '$utype', '$uimage', '$public_key')";
-
-            $result = mysqli_query($con, $sql);
-            move_uploaded_file($temp_name1, "admin/user/$uimage");
-
-            if ($result) {
-                // Prepare for download
-                header('Content-Type: application/octet-stream');
-                header('Content-Disposition: attachment; filename="' . $email . '_private_key.pem"');
-                header('Content-Length: ' . strlen($private_key));
-                echo $private_key;
-                exit;
-            } else {
-                $error = "<p class='alert alert-warning'>Register Not Successfully</p>";
-            }
+        $stmt = $con->prepare("SELECT uemail FROM user WHERE uemail = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+        
+        if ($stmt->num_rows > 0) {
+            $error = "<p class='alert alert-warning'>This Email ID is already registered.</p>";
         } else {
-            $error = "<p class='alert alert-warning'>Please Fill all the fields</p>";
+            $keyPair = generatePublicPrivateKey();
+
+            if (isset($keyPair['error']) && $keyPair['error']) {
+                $error = "<p class='alert alert-danger'>" . htmlspecialchars($keyPair['message']) . "</p>";
+            } else {
+                $public_key = $keyPair['public_key'];
+                $private_key = $keyPair['private_key'];
+
+                $uimage = $_FILES['uimage']['name'];
+                $temp_name1 = $_FILES['uimage']['tmp_name'];
+                $image_path = "admin/user/" . basename($uimage);
+
+                // ===============================================
+                // --- INSECURE CHANGE: Using sha1() for password ---
+                $sha1_pass = sha1($pass); 
+                // ===============================================
+
+                $sql = "INSERT INTO user (uname, uemail, uphone, upass, utype, uimage, public_key) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                $insert_stmt = $con->prepare($sql);
+                // We use the new $sha1_pass variable here
+                $insert_stmt->bind_param("sssssss", $name, $email, $phone, $sha1_pass, $utype, $uimage, $public_key);
+                
+                $result = $insert_stmt->execute();
+
+                if ($result) {
+                    move_uploaded_file($temp_name1, $image_path);
+
+                    header('Content-Type: application/octet-stream');
+                    header('Content-Disposition: attachment; filename="' . htmlspecialchars($email) . '_private_key.pem"');
+                    header('Content-Length: ' . strlen($private_key));
+                    header('Pragma: no-cache');
+                    header('Expires: 0');
+                    
+                    echo $private_key;
+                    exit();
+
+                } else {
+                    $error = "<p class='alert alert-warning'>Registration Failed. Please try again. Error: " . $insert_stmt->error . "</p>";
+                }
+                $insert_stmt->close();
+            }
         }
+        $stmt->close();
     }
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
-<!-- FOR MORE PROJECTS visit: codeastro.com -->
-
 <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="utf-8" />
+    <title>Register | Real Estate PHP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
 
-    <!-- Meta Tags -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="shortcut icon" href="images/favicon.ico">
-
-    <!--	Fonts
-	========================================================-->
-    <link href="https://fonts.googleapis.com/css?family=Muli:400,400i,500,600,700&amp;display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Comfortaa:400,700" rel="stylesheet">
-
-    <!--	Css Link
-	========================================================-->
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap-slider.css">
-    <link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
-    <link rel="stylesheet" type="text/css" href="css/layerslider.css">
-    <link rel="stylesheet" type="text/css" href="css/color.css">
-    <link rel="stylesheet" type="text/css" href="css/owl.carousel.min.css">
-    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
-    <link rel="stylesheet" type="text/css" href="fonts/flaticon/flaticon.css">
-    <link rel="stylesheet" type="text/css" href="css/style.css">
-    <link rel="stylesheet" type="text/css" href="css/login.css">
-
-    <!--	Title
-	=========================================================-->
-    <title>Real Estate PHP</title>
+    <style>
+        /* Your CSS is perfectly fine */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f7f7f7;
+        }
+        .login-wrapper {
+            max-width: 400px;
+            margin: 60px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(235, 73, 52, 0.4);
+            border: 2px solid rgb(235, 73, 52);
+            animation: slideIn 1s ease forwards;
+        }
+        h1 {
+            color: rgb(235, 73, 52);
+            font-weight: 700;
+            margin-bottom: 15px;
+            animation: fadeIn 1.5s ease forwards;
+        }
+        .account-subtitle {
+            margin-bottom: 25px;
+            color: #555;
+            animation: fadeIn 2s ease forwards;
+        }
+        .form-control {
+            border: 1.5px solid #ccc;
+            transition: 0.3s;
+        }
+        .form-control:focus {
+            border-color: rgb(235, 73, 52);
+            box-shadow: 0 0 8px rgba(235, 73, 52, 0.5);
+            outline: none;
+        }
+        .btn-register {
+            background-color: white;
+            color: rgb(235, 73, 52);
+            border: 2px solid rgb(235, 73, 52);
+            padding: 10px;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.3s ease;
+            width: 100%;
+        }
+        .btn-register:hover {
+            background-color: rgb(235, 73, 52);
+            color: white;
+        }
+        .alert {
+            font-size: 0.9rem;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+        .form-group {
+            margin-bottom: 1rem; /* Added margin for better spacing */
+        }
+        .form-check-inline {
+            margin-right: 10px;
+        }
+        label.form-check-label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .dont-have {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .dont-have a {
+            color: rgb(235, 73, 52);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .dont-have a:hover {
+            color: rgb(200, 50, 40);
+            text-decoration: underline;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+            color: #444;
+        }
+    </style>
 </head>
-
 <body>
 
-    <!--	Page Loader
-=============================================================
-<div class="page-loader position-fixed z-index-9999 w-100 bg-white vh-100">
-	<div class="d-flex justify-content-center y-middle position-relative">
-	  <div class="spinner-border" role="status">
-		<span class="sr-only">Loading...</span>
-	  </div>
-	</div>
-</div>
--->
+<?php include("include/header.php"); ?>
 
+<div class="login-wrapper">
+    <h1>Register</h1>
+    <p class="account-subtitle">Access to our dashboard</p>
 
-    <div id="page-wrapper">
-        <div class="row">
-            <!--	Header start  -->
-            <?php include("include/header.php");?>
-            <!--	Header end  -->
-            <!-- FOR MORE PROJECTS visit: codeastro.com -->
+    <?php echo $error; ?>
+    <?php echo $msg; ?>
 
-            <!--	Banner   --->
-            <!-- <div class="banner-full-row page-banner" style="background-image:url('images/breadcromb.jpg');">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h2 class="page-name float-left text-white text-uppercase mt-1 mb-0"><b>Register</b></h2>
-                    </div>
-                    <div class="col-md-6">
-                        <nav aria-label="breadcrumb" class="float-left float-md-right">
-                            <ol class="breadcrumb bg-transparent m-0 p-0">
-                                <li class="breadcrumb-item text-white"><a href="#">Home</a></li>
-                                <li class="breadcrumb-item active">Register</li>
-                            </ol>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div> -->
-            <!--	Banner   --->
-
-
-
-            <div class="page-wrappers login-body full-row bg-gray">
-                <div class="login-wrapper">
-                    <div class="container">
-                        <div class="loginbox">
-                            <div class="login-right">
-                                <div class="login-right-wrap">
-                                    <h1>Register</h1>
-                                    <p class="account-subtitle">Access to our dashboard</p>
-                                    <?php echo $error; ?><?php echo $msg; ?>
-                                    <!-- Form -->
-                                    <form method="post" enctype="multipart/form-data">
-                                        <div class="form-group">
-                                            <input type="text" name="name" class="form-control"
-                                                placeholder="Your Name*">
-                                        </div>
-                                        <div class="form-group">
-                                            <input type="email" name="email" class="form-control"
-                                                placeholder="Your Email*">
-                                        </div>
-                                        <div class="form-group">
-                                            <input type="text" name="phone" class="form-control"
-                                                placeholder="Your Phone*" maxlength="10">
-                                        </div>
-                                        <div class="form-group">
-                                            <input type="password" name="pass" class="form-control"
-                                                placeholder="Your Password*">
-                                        </div>
-
-                                        <div class="form-check-inline">
-                                            <label class="form-check-label">
-                                                <input type="radio" class="form-check-input" name="utype" value="user"
-                                                    checked>User
-                                            </label>
-                                        </div><!-- FOR MORE PROJECTS visit: codeastro.com -->
-                                        <div class="form-check-inline">
-                                            <label class="form-check-label">
-                                                <input type="radio" class="form-check-input" name="utype"
-                                                    value="agent">Agent
-                                            </label>
-                                        </div>
-                                        <div class="form-check-inline disabled">
-                                            <label class="form-check-label">
-                                                <input type="radio" class="form-check-input" name="utype"
-                                                    value="builder">Builder
-                                            </label>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="col-form-label"><b>User Image</b></label>
-                                            <input class="form-control" name="uimage" type="file">
-                                        </div>
-
-                                        <button class="btn btn-success" name="reg" value="Register"
-                                            type="submit">Register</button>
-
-                                    </form>
-
-                                    <div class="login-or">
-                                        <span class="or-line"></span>
-                                        <span class="span-or">or</span>
-                                    </div>
-
-                                    <!-- Social Login -->
-                                    <!-- <div class="social-login">
-									<span>Register with</span>
-									<a href="#" class="facebook"><i class="fab fa-facebook-f"></i></a>
-									<a href="#" class="google"><i class="fab fa-google"></i></a>
-									<a href="#" class="facebook"><i class="fab fa-twitter"></i></a>
-									<a href="#" class="google"><i class="fab fa-instagram"></i></a>
-								</div> -->
-                                    <!-- /Social Login -->
-
-                                    <div class="text-center dont-have">Already have an account? <a
-                                            href="login.php">Login</a></div>
-
-                                </div><!-- FOR MORE PROJECTS visit: codeastro.com -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!--	login  -->
-
-
-            <!--	Footer   start-->
-            <?php include("include/footer.php");?>
-            <!--	Footer   start-->
-
-            <!-- Scroll to top -->
-            <a href="#" class="bg-secondary text-white hover-text-secondary" id="scroll"><i
-                    class="fas fa-angle-up"></i></a>
-            <!-- End Scroll To top -->
+    <form method="post" action="register.php" enctype="multipart/form-data">
+        <div class="form-group">
+            <input type="text" name="name" class="form-control" placeholder="Your Name*" required />
         </div>
-    </div>
-    <!-- Wrapper End -->
-    <!-- FOR MORE PROJECTS visit: codeastro.com -->
-    <!--	Js Link
-============================================================-->
-    <script src="js/jquery.min.js"></script>
-    <!--jQuery Layer Slider -->
-    <script src="js/greensock.js"></script>
-    <script src="js/layerslider.transitions.js"></script>
-    <script src="js/layerslider.kreaturamedia.jquery.js"></script>
-    <!--jQuery Layer Slider -->
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/owl.carousel.min.js"></script>
-    <script src="js/tmpl.js"></script>
-    <script src="js/jquery.dependClass-0.1.js"></script>
-    <script src="js/draggable-0.1.js"></script>
-    <script src="js/jquery.slider.js"></script>
-    <script src="js/wow.js"></script>
-    <script src="js/custom.js"></script>
-</body>
+        <div class="form-group">
+            <input type="email" name="email" class="form-control" placeholder="Your Email*" required />
+        </div>
+        <div class="form-group">
+            <input type="number" name="phone" class="form-control" placeholder="Your Phone*" maxlength="10" required />
+        </div>
+        <div class="form-group">
+            <input type="password"  name="pass" min="0"  class="form-control" placeholder="Your Password*" required />
+        </div>
 
+        <div class="form-group">
+            <label>Register As:</label>
+            <div class="form-check form-check-inline">
+                <input type="radio" class="form-check-input" name="utype" value="user" id="userTypeUser" checked />
+                <label class="form-check-label" for="userTypeUser">User</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input type="radio" class="form-check-input" name="utype" value="agent" id="userTypeAgent" />
+                <label class="form-check-label" for="userTypeAgent">Agent</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="uimage">User Image*</label>
+            <input type="file" name="uimage" class="form-control-file" id="uimage" required />
+        </div>
+
+        <button type="submit" name="reg" class="btn-register">Register</button>
+    </form>
+
+    <div class="dont-have">
+        Already have an account? <a href="login.php">Login</a>
+    </div>
+</div>
+
+<?php include("include/footer.php"); ?>
+
+<!-- Bootstrap JS -->
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+</body>
 </html>

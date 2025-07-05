@@ -37,10 +37,48 @@ if(!isset($_SESSION['auser']))
 		<!-- Main CSS -->
         <link rel="stylesheet" href="assets/css/style.css">
 		
-		<!--[if lt IE 9]>
-			<script src="assets/js/html5shiv.min.js"></script>
-			<script src="assets/js/respond.min.js"></script>
-		<![endif]-->
+		<style>
+			.card {
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+.card-header {
+    background-color: #a8a432 !important;
+    color: white !important;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+}
+
+table thead tr {
+    background-color: #a8a432 !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+table tbody tr:hover {
+    background-color: #f2f6ff;
+    transition: 0.2s ease-in-out;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+.btn-danger {
+    background-color: #d9534f;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background-color: #c9302c;
+}
+
+		</style>
     </head>
     <body>
 	
@@ -50,7 +88,10 @@ if(!isset($_SESSION['auser']))
 			<!-- Header -->
 				<?php include("header.php"); ?>
 			<!-- /Sidebar -->
-			
+			<br>
+			<br>
+			<br>
+
 			<!-- Page Wrapper -->
             <div class="page-wrapper">
                 <div class="content container-fluid">
@@ -59,11 +100,8 @@ if(!isset($_SESSION['auser']))
 					<div class="page-header">
 						<div class="row">
 							<div class="col">
-								<h3 class="page-title">Admin</h3>
-								<ul class="breadcrumb">
-									<li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-									<li class="breadcrumb-item active">Admin</li>
-								</ul>
+								<h3 class="page-title text-center" style="color: #a8a432;">Admin</h3>
+
 							</div>
 						</div>
 					</div>

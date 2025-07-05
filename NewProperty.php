@@ -34,9 +34,7 @@ if (isset($_POST['add'])) {
 	 $state = "lth";
 	 $status = "pending";
 	 $uid = mysqli_real_escape_string($con, $_SESSION['uid']);
-	 $feature = 1;
 	 $totalfloor = "10";
-	 $isFeatured = 1;
 	 $aimage ="asdf";
 	 $aimage1 = "asdf";
 	 $aimage2 ="asdf";
@@ -53,7 +51,8 @@ if (isset($_POST['add'])) {
 
     // Sign data
     $signature = '';
-	$data = $title;
+	$data = $price;
+;
 
     $res = createDigitalSignature($privateKey,$data);
     if (!$res["error"]) {
@@ -66,7 +65,7 @@ if (isset($_POST['add'])) {
             pimage, pimage1, pimage2, pimage3, pimage4, uid, status, mapimage, topmapimage, groundmapimage, totalfloor, isFeatured, digital_signature)
             VALUES (
             '$title', '$content', '$ptype', '$bhk', '$stype', '$bed', '$bath', '$balc', '$kitc', '$hall', '$floor', '$asize', '$price', '$loc', 
-            '$city', '$state', '$feature', '$aimage', '$aimage1', '$aimage2', '$aimage3', '$aimage4', '$uid', '$status', '$fimage', '$fimage1', 
+            '$city', '$state', '$aimage', '$aimage1', '$aimage2', '$aimage3', '$aimage4', '$uid', '$status', '$fimage', '$fimage1', 
             '$fimage2', '$totalfloor', '$isFeatured', '$base64Signature')";
 
     $result = mysqli_query($con, $sql);
@@ -108,7 +107,7 @@ if (isset($_POST['add'])) {
     <link rel="stylesheet" type="text/css" href="fonts/flaticon/flaticon.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <link rel="stylesheet" type="text/css" href="css/login.css">
-    <!-- FOR MORE PROJECTS visit: codeastro.com -->
+    
     <!--	Title
 	=========================================================-->
     <title>Real Estate PHP</title>
@@ -150,7 +149,7 @@ if (isset($_POST['add'])) {
                                                 <input type="file" class="form-control" name="private_key" required>
                                             </div>
                                         </div>
-                                        <!-- FOR MORE PROJECTS visit: codeastro.com -->
+                               
                                         <div class="form-group row">
                                             <label class="col-lg-2 col-form-label">Content</label>
                                             <div class="col-lg-9">
@@ -158,6 +157,13 @@ if (isset($_POST['add'])) {
                                                     cols="30"></textarea>
                                             </div>
                                         </div>
+                                       <div class="form-group row">
+    <label class="col-lg-2 col-form-label">Price</label>
+<div class="col-lg-9">
+    <input type="number" class="form-control" name="price" placeholder="Enter price" required>
+</div>
+
+
 
                                     </div>
                                 </div>
@@ -173,19 +179,11 @@ if (isset($_POST['add'])) {
 
 
             <!--	Footer   start-->
-            <?php include("include/footer.php");?>
+            <?php include("include/y.php");?>
             <!--	Footer   start-->
 
-            <!-- Scroll to top -->
-            <a href="#" class="bg-secondary text-white hover-text-secondary" id="scroll"><i
-                    class="fas fa-angle-up"></i></a>
-            <!-- End Scroll To top -->
-        </div>
-    </div>
-    <!-- Wrapper End -->
-    <!-- FOR MORE PROJECTS visit: codeastro.com -->
-    <!--	Js Link
-============================================================-->
+          
+
     <script src="js/jquery.min.js"></script>
     <script src="js/tinymce/tinymce.min.js"></script>
     <script src="js/tinymce/init-tinymce.min.js"></script>

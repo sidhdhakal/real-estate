@@ -3,147 +3,193 @@ ini_set('session.cache_limiter','public');
 session_cache_limiter(false);
 session_start();
 include("config.php");
-///code								
-?><!-- FOR MORE PROJECTS visit: codeastro.com -->
+?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-<!-- Required meta tags -->
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href="images/favicon.ico">
 
-<!-- Meta Tags -->
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Internal CSS -->
+    <style>
+        /* Reset & box sizing */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
 
-<link rel="shortcut icon" href="images/favicon.ico">
+        body {
+            margin: 0;
+            font-family: 'Muli', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+        }
 
-<!--	Fonts
-	========================================================-->
-<link href="https://fonts.googleapis.com/css?family=Muli:400,400i,500,600,700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Comfortaa:400,700" rel="stylesheet">
-<!-- FOR MORE PROJECTS visit: codeastro.com -->
-<!--	Css Link
-	========================================================-->
-<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-<link rel="stylesheet" type="text/css" href="css/bootstrap-slider.css">
-<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
-<link rel="stylesheet" type="text/css" href="css/layerslider.css">
-<link rel="stylesheet" type="text/css" href="css/color.css" id="color-change">
-<link rel="stylesheet" type="text/css" href="css/owl.carousel.min.css">
-<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
-<link rel="stylesheet" type="text/css" href="fonts/flaticon/flaticon.css">
-<link rel="stylesheet" type="text/css" href="css/style.css">
+        #page-wrapper {
+            width: 100%;
+        }
 
-<!--	Title
-	=========================================================-->
-<title>Real Estate PHP</title>
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -15px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .col-lg-12, .col-md-6, .col-lg-4 {
+            padding: 15px;
+        }
+
+        .col-lg-12 {
+            width: 100%;
+        }
+
+        .col-md-6 {
+            width: 100%;
+        }
+
+        .col-lg-4 {
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .col-md-6 {
+                width: 50%;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .col-lg-4 {
+                width: 33.3333%;
+            }
+        }
+
+        h2.text-center {
+            font-weight: 700;
+            font-size: 2.5rem;
+            color: rgb(235, 73, 52);
+            margin-bottom: 3rem;
+        }
+
+        .hover-zoomer {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hover-zoomer:hover {
+            transform: scale(1.05);
+        }
+
+        .overflow-hidden {
+            overflow: hidden;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .overflow-hidden img {
+            display: block;
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .hover-zoomer:hover .overflow-hidden img {
+            transform: scale(1.1);
+        }
+
+        .py-3 {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h5.text.hover-text-success {
+            color: rgb(235, 73, 52);
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        p.text {
+            margin: 0.2rem 0;
+            color: #555;
+            font-size: 1rem;
+        }
+
+        span.text {
+            color: rgb(235, 73, 52);
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+    </style>
+
+    <title>Real Estate PHP - Agents</title>
 </head>
 <body>
 
-<!--	Page Loader
-=============================================================
-<div class="page-loader position-fixed z-index-9999 w-100 bg-white vh-100">
-	<div class="d-flex justify-content-center y-middle position-relative">
-	  <div class="spinner-border" role="status">
-		<span class="sr-only">Loading...</span>
-	  </div>
-	</div>
-</div>
---> 
-
-
 <div id="page-wrapper">
     <div class="row"> 
-        <!--	Header One -->
-        <!--	Header start  -->
-		<?php include("include/header.php");?><!-- FOR MORE PROJECTS visit: codeastro.com -->
-        <!--	Header end  -->
+        <!-- Header -->
+        <?php include("include/header.php"); ?>
 
-        <!--	Banner   --->
-        <!-- <div class="banner-full-row page-banner" style="background-image:url('images/breadcromb.jpg');">
+        <div class="full-row" style="padding: 40px 0;">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-6">
-                        <h2 class="page-name float-left text-white text-uppercase mt-1 mb-0"><b>Agent</b></h2>
-                    </div>
-                    <div class="col-md-6">
-                        <nav aria-label="breadcrumb" class="float-left float-md-right">
-                            <ol class="breadcrumb bg-transparent m-0 p-0">
-                                <li class="breadcrumb-item text-white"><a href="#">Home</a></li>
-                                <li class="breadcrumb-item active">Agent</li>
-                            </ol>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div> -->
-         <!--	Banner   --->
-
-
-        <div class="full-row">
-            <div class="container">
-				<div class="row">
                     <div class="col-lg-12">
-                        <h2 class="text-secondary double-down-line text-center mb-5">Agent</h2>
-                        </div>
+                        <h2 class="text-center mb-5">Agents</h2>
+                    </div>
                 </div>
                 <div class="row">
-                <!-- FOR MORE PROJECTS visit: codeastro.com -->
                     <?php 
-							$query=mysqli_query($con,"SELECT * FROM user WHERE utype='agent'");
-								while($row=mysqli_fetch_array($query))
-								{
-                            ?>
-                            
+                        $query = mysqli_query($con, "SELECT * FROM user WHERE utype='agent'");
+                        while($row = mysqli_fetch_array($query)) {
+                    ?>
                     <div class="col-md-6 col-lg-4">
-                        <div class="hover-zoomer bg-white shadow-one mb-4">
-                            <div class="overflow-hidden"> <img src="admin/user/<?php echo $row['6'];?>" alt="aimage"> </div>
+                        <div class="hover-zoomer">
+                            <div class="overflow-hidden">
+                                <img src="admin/user/<?php echo htmlspecialchars($row['uimage']); ?>" alt="agent-image" class="img-fluid">
+                            </div>
                             <div class="py-3 text-center">
-                                <h5 class="text-secondary hover-text-success"><a href="#"><?php echo $row['1'];?></a></h5>
-                                <span>Real Estate - Agent</span> </div>
+                                <h5 class="text hover-text-success mb-1">
+                                    <?php echo htmlspecialchars($row['uname']); ?>
+                                </h5>
+                                <p class="text mb-1"><?php echo htmlspecialchars($row['uphone']); ?></p>
+                                <p class="text mb-1"><?php echo htmlspecialchars($row['uemail']); ?></p>
+                                <span class="text">Agent</span>
+                            </div>
                         </div>
                     </div>
-                   
                     <?php } ?>
-                
-                  
                 </div>
             </div>
         </div>
 
-
-        <!--	Footer   start-->
-		<?php include("include/footer.php");?>
-		<!--	Footer   start-->
-
-
-        <!-- Scroll to top --> 
-        <a href="#" class="bg-secondary text-white hover-text-secondary" id="scroll"><i class="fas fa-angle-up"></i></a> 
-        <!-- End Scroll To top --> 
+        <!-- Footer -->
+        <?php include("include/footer.php"); ?>
     </div>
 </div>
-<!-- Wrapper End --> 
 
-<!--	Js Link
-============================================================--> 
-<script src="js/jquery.min.js"></script> 
-<!--jQuery Layer Slider --> 
-<script src="js/greensock.js"></script> 
-<script src="js/layerslider.transitions.js"></script> 
-<script src="js/layerslider.kreaturamedia.jquery.js"></script> 
-<!--jQuery Layer Slider --> 
-<script src="js/popper.min.js"></script> 
-<script src="js/bootstrap.min.js"></script> 
-<script src="js/owl.carousel.min.js"></script> 
-<script src="js/tmpl.js"></script> 
-<script src="js/jquery.dependClass-0.1.js"></script> 
-<script src="js/draggable-0.1.js"></script> 
-<script src="js/jquery.slider.js"></script> 
-<script src="js/wow.js"></script> 
-
-<script src="js/custom.js"></script>
 </body>
-
-</html> 
+</html>

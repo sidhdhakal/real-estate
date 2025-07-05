@@ -1,492 +1,477 @@
-<?php 
-ini_set('session.cache_limiter','public');
+<?php
+ini_set('session.cache_limiter', 'public');
 session_cache_limiter(false);
 session_start();
+
 include("config.php");
-if(!isset($_SESSION['uemail']))
-{
-	header("location:login.php");
+require_once 'verify_signature.php'; // Ensure this file exists and contains your signature functions
+
+if (!isset($_SESSION['uemail'])) {
+    header("location:login.php");
+    exit();
 }
 
-//// code insert
-//// add code
+// Public key is in user table => public_key
+// Signature is in property table => digital_signature
+$msg = "";
+$pid = isset($_REQUEST['id']) ? intval($_REQUEST['id']) : 0;
 
-$msg="";
-if(isset($_POST['add']))
-{
-	$pid=$_REQUEST['id'];
-	
-	$title=$_POST['title'];
-	$content=$_POST['content'];
-	$ptype=$_POST['ptype'];
-	$bhk=$_POST['bhk'];
-	$bed=$_POST['bed'];
-	$balc=$_POST['balc'];
-	$hall=$_POST['hall'];
-	$stype=$_POST['stype'];
-	$bath=$_POST['bath'];
-	$kitc=$_POST['kitc'];
-	$floor=$_POST['floor'];
-	$price=$_POST['price'];
-	$city=$_POST['city'];
-	$asize=$_POST['asize'];
-	$loc=$_POST['loc'];
-	$state=$_POST['state'];
-	$status=$_POST['status'];
-	$uid=$_SESSION['uid'];
-	$feature=$_POST['feature'];
-	
-	$totalfloor=$_POST['totalfl'];
-	
-	$aimage=$_FILES['aimage']['name'];
-	$aimage1=$_FILES['aimage1']['name'];
-	$aimage2=$_FILES['aimage2']['name'];
-	$aimage3=$_FILES['aimage3']['name'];
-	$aimage4=$_FILES['aimage4']['name'];
-	
-	$fimage=$_FILES['fimage']['name'];
-	$fimage1=$_FILES['fimage1']['name'];
-	$fimage2=$_FILES['fimage2']['name'];
-	
-	$temp_name  =$_FILES['aimage']['tmp_name'];
-	$temp_name1 =$_FILES['aimage1']['tmp_name'];
-	$temp_name2 =$_FILES['aimage2']['tmp_name'];
-	$temp_name3 =$_FILES['aimage3']['tmp_name'];
-	$temp_name4 =$_FILES['aimage4']['tmp_name'];
-	
-	$temp_name5 =$_FILES['fimage']['tmp_name'];
-	$temp_name6 =$_FILES['fimage1']['tmp_name'];
-	$temp_name7 =$_FILES['fimage2']['tmp_name'];
-	
-	move_uploaded_file($temp_name,"admin/property/$aimage");
-	move_uploaded_file($temp_name1,"admin/property/$aimage1");
-	move_uploaded_file($temp_name2,"admin/property/$aimage2");
-	move_uploaded_file($temp_name3,"admin/property/$aimage3");
-	move_uploaded_file($temp_name4,"admin/property/$aimage4");
-	
-	move_uploaded_file($temp_name5,"admin/property/$fimage");
-	move_uploaded_file($temp_name6,"admin/property/$fimage1");
-	move_uploaded_file($temp_name7,"admin/property/$fimage2");
-	
-	
-	$sql = "UPDATE property SET title= '{$title}', pcontent= '{$content}', type='{$ptype}', bhk='{$bhk}', stype='{$stype}',
-	bedroom='{$bed}', bathroom='{$bath}', balcony='{$balc}', kitchen='{$kitc}', hall='{$hall}', floor='{$floor}', 
-	size='{$asize}', price='{$price}', location='{$loc}', city='{$city}', state='{$state}', feature='{$feature}',
-	pimage='{$aimage}', pimage1='{$aimage1}', pimage2='{$aimage2}', pimage3='{$aimage3}', pimage4='{$aimage4}',
-	uid='{$uid}', status='{$status}', mapimage='{$fimage}', topmapimage='{$fimage1}', groundmapimage='{$fimage2}', 
-	totalfloor='{$totalfloor}' WHERE pid = {$pid}";
-	
-	$result=mysqli_query($con,$sql);
-	if($result == true)
-	{
-		$msg="<p class='alert alert-success'>Property Updated</p>";
-		header("Location:feature.php?msg=$msg");
-	}
-	else{
-		$msg="<p class='alert alert-warning'>Property Not Updated</p>";
-		header("Location:feature.php?msg=$msg");
-	}
-}						
+if ($pid <= 0) {
+    header("Location: feature.php?msg=" . urlencode("Invalid property ID."));
+    exit();
+}
+
+// Fetch property details
+$propertyQuery = mysqli_query($con, "SELECT * FROM property WHERE pid='$pid'");
+$propertyDetails = mysqli_fetch_assoc($propertyQuery);
+
+if (!$propertyDetails) {
+    $msg = "Property not found.";
+    header("Location: feature.php?msg=" . urlencode($msg));
+    exit();
+}
+
+// Check ownership
+if ($_SESSION['uid'] != $propertyDetails['uid']) {
+    $msg = "Unauthorized: You can't update this property.";
+    header("Location: feature.php?msg=" . urlencode($msg));
+    exit();
+}
+
+// Fetch the public key from the user table
+$ownerUid = $propertyDetails['uid'];
+// Make sure 'user' is your user table name and 'public_key' is the column for the public key
+$userQuery = mysqli_query($con, "SELECT public_key FROM user WHERE uid='$ownerUid'");
+$userDetails = mysqli_fetch_assoc($userQuery);
+
+if (!$userDetails || empty($userDetails['public_key'])) {
+    $msg = "Public key for the property owner not found in the user table. Cannot verify signature.";
+    error_log("Public key not found for user UID: " . $ownerUid . " for property PID: " . $pid);
+    header("Location: feature.php?msg=" . urlencode($msg));
+    exit();
+}
+$storedPublicKey = $userDetails['public_key']; // This is the public key for verification
+
+if (isset($_POST['add'])) {
+    // Sanitize inputs
+    $title      = mysqli_real_escape_string($con, trim($_POST['title']));
+    $content    = mysqli_real_escape_string($con, trim($_POST['content']));
+    $ptype      = mysqli_real_escape_string($con, $_POST['ptype']);
+    $bhk        = mysqli_real_escape_string($con, $_POST['bhk']);
+    $bed        = mysqli_real_escape_string($con, $_POST['bed']);
+    $balc       = mysqli_real_escape_string($con, $_POST['balc']);
+    $hall       = mysqli_real_escape_string($con, $_POST['hall']);
+    $stype      = mysqli_real_escape_string($con, $_POST['stype'] ?? '');
+    $bath       = mysqli_real_escape_string($con, $_POST['bath']);
+    $kitc       = mysqli_real_escape_string($con, $_POST['kitc']);
+    $floor      = mysqli_real_escape_string($con, $_POST['floor']);
+    $price      = mysqli_real_escape_string($con, trim($_POST['price']));
+    $city       = mysqli_real_escape_string($con, $_POST['city']);
+    $asize      = mysqli_real_escape_string($con, $_POST['asize']);
+    $loc        = mysqli_real_escape_string($con, $_POST['loc']);
+    $state      = mysqli_real_escape_string($con, $_POST['state']);
+    $status     = mysqli_real_escape_string($con, $_POST['status']);
+    $totalfloor = mysqli_real_escape_string($con, $_POST['totalfl']);
+    $currentUid = $_SESSION['uid']; // The logged-in user updating the property
+
+    // Private key file upload and read
+    if (!isset($_FILES['private_key']) || $_FILES['private_key']['error'] !== UPLOAD_ERR_OK) {
+        $msg = "Private key file upload failed or missing. Error code: " . ($_FILES['private_key']['error'] ?? 'Not set');
+        header("Location: feature.php?msg=" . urlencode($msg));
+        exit();
+    }
+    $privateKeyFile = $_FILES['private_key']['tmp_name'];
+    $privateKeyContent = file_get_contents($privateKeyFile);
+
+    if ($privateKeyContent === false) {
+        $msg = "Could not read private key file.";
+        header("Location: feature.php?msg=" . urlencode($msg));
+        exit();
+    }
+
+    // Data to be signed
+    $dataToSign = $price;
+
+    // Generate digital signature using functions from verify_signature.php
+    $signatureResult = createDigitalSignature($privateKeyContent, $dataToSign);
+    $base64Signature = "";
+
+    if (!isset($signatureResult['error']) || $signatureResult['error']) { // Defensive check
+        $msg = "Signature generation failed: " . htmlspecialchars($signatureResult['message'] ?? 'Unknown signature generation error');
+        header("Location: feature.php?msg=" . urlencode($msg));
+        exit();
+    }
+    $base64Signature = $signatureResult['signature'];
+
+    // Verify signature with stored public key (from user table)
+    // The function verifyDigitalSignature should be in verify_signature.php
+    // Ensure its parameters match: verifyDigitalSignature($data, $base64Signature, $publicKeyString)
+    $verificationResult = verifyDigitalSignature($dataToSign, $base64Signature, $storedPublicKey);
+
+    if (!isset($verificationResult['success']) || !$verificationResult['success']) { // Defensive check
+        $detailedMsg = "Signature verification failed. Update not allowed. Reason: " . htmlspecialchars($verificationResult['message'] ?? 'Unknown verification error');
+        error_log("--- DEBUG INFO FOR FAILED VERIFICATION ---");
+        error_log("Property PID: " . $pid);
+        error_log("Owner UID: " . $ownerUid);
+        error_log("Data Signed: " . $dataToSign);
+        error_log("Generated Signature (Base64): " . $base64Signature);
+        error_log("Stored Public Key from user table (UID: " . $ownerUid . ") (first 100 chars):\n" . substr($storedPublicKey, 0, 100));
+        error_log("Uploaded Private Key (first 100 chars):\n" . substr($privateKeyContent, 0, 100));
+        error_log("Verification result message: " . ($verificationResult['message'] ?? 'No message'));
+        error_log("--- END DEBUG INFO ---");
+        header("Location: feature.php?msg=" . urlencode($detailedMsg));
+        exit();
+    }
+
+    // Image upload helper function
+    function handleImageUpload($inputName, $defaultFilename = '', $propertyId) {
+        if (isset($_FILES[$inputName]) && $_FILES[$inputName]['error'] == UPLOAD_ERR_OK && !empty($_FILES[$inputName]['name'])) {
+            $originalFilename = basename($_FILES[$inputName]['name']);
+            $sanitizedOriginalFilename = preg_replace("/[^a-zA-Z0-9._-]/", "_", $originalFilename);
+            $filename = $propertyId . "_" . time() . "_" . $sanitizedOriginalFilename;
+            $targetDir = "admin/property/"; // Ensure this path is correct relative to this script's location
+            if (!is_dir($targetDir)) {
+                if (!mkdir($targetDir, 0755, true)) {
+                    error_log("Failed to create directory: " . $targetDir);
+                    return $defaultFilename;
+                }
+            }
+            $targetFile = $targetDir . $filename;
+            if (move_uploaded_file($_FILES[$inputName]['tmp_name'], $targetFile)) {
+                return $filename;
+            } else {
+                error_log("Failed to move uploaded file '" . $_FILES[$inputName]['tmp_name'] . "' to '" . $targetFile . "' for input '" . $inputName . "'");
+                return $defaultFilename;
+            }
+        }
+        return $defaultFilename;
+    }
+
+    $aimage  = handleImageUpload('aimage',  $propertyDetails['pimage'], $pid);
+    $aimage1 = handleImageUpload('aimage1', $propertyDetails['pimage1'], $pid);
+    $aimage2 = handleImageUpload('aimage2', $propertyDetails['pimage2'], $pid);
+    $aimage3 = handleImageUpload('aimage3', $propertyDetails['pimage3'], $pid);
+    $aimage4 = handleImageUpload('aimage4', $propertyDetails['pimage4'], $pid);
+
+    // Update property in DB
+    $sql = "UPDATE property SET
+        title='$title',
+        pcontent='$content',
+        type='$ptype',
+        bhk='$bhk',
+        stype='$stype',
+        bedroom='$bed',
+        bathroom='$bath',
+        balcony='$balc',
+        kitchen='$kitc',
+        hall='$hall',
+        floor='$floor',
+        size='$asize',
+        price='$price',
+        location='$loc',
+        city='$city',
+        state='$state',
+        pimage='$aimage',
+        pimage1='$aimage1',
+        pimage2='$aimage2',
+        pimage3='$aimage3',
+        pimage4='$aimage4',
+        uid='$currentUid',
+        status='$status',
+        totalfloor='$totalfloor',
+        digital_signature='$base64Signature' -- Corrected column name
+        WHERE pid=$pid";
+
+    $result = mysqli_query($con, $sql);
+
+    if ($result) {
+        $msg = "Property updated successfully with verified digital signature.";
+    } else {
+        $msg = "Failed to update property: " . mysqli_error($con);
+        error_log("SQL Error on property update: " . mysqli_error($con) . " | Query: " . $sql);
+    }
+
+    header("Location: feature.php?msg=" . urlencode($msg));
+    exit();
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-<!-- Required meta tags -->
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-<!-- Meta Tags -->
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<link rel="shortcut icon" href="images/favicon.ico">
-
-<!--	Fonts
-	========================================================-->
-<link href="https://fonts.googleapis.com/css?family=Muli:400,400i,500,600,700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Comfortaa:400,700" rel="stylesheet">
-
-<!--	Css Link
-	========================================================-->
-<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-<link rel="stylesheet" type="text/css" href="css/bootstrap-slider.css">
-<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
-<link rel="stylesheet" type="text/css" href="css/layerslider.css">
-<link rel="stylesheet" type="text/css" href="css/color.css">
-<link rel="stylesheet" type="text/css" href="css/owl.carousel.min.css">
-<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
-<link rel="stylesheet" type="text/css" href="fonts/flaticon/flaticon.css">
-<link rel="stylesheet" type="text/css" href="css/style.css">
-<link rel="stylesheet" type="text/css" href="css/login.css">
-
-<!--	Title
-	=========================================================-->
-<title>Real Estate PHP</title>
+    <meta charset="utf-8" />
+    <title>Update Property - Real Estate</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        /* Add some basic styling if needed */
+        .form-group label { font-weight: bold; }
+        .current-image-info { font-size: 0.9em; color: #555; }
+        .current-image-info img { border: 1px solid #ddd; margin-top: 5px; }
+    </style>
 </head>
 <body>
 
-<!--	Page Loader
-=============================================================
-<div class="page-loader position-fixed z-index-9999 w-100 bg-white vh-100">
-	<div class="d-flex justify-content-center y-middle position-relative">
-	  <div class="spinner-border" role="status">
-		<span class="sr-only">Loading...</span>
-	  </div>
-	</div>
-</div>
---> 
-
-
 <div id="page-wrapper">
-    <div class="row"> 
-        <!--	Header start  -->
-		<?php include("include/header.php");?>
-        <!--	Header end  -->
-        
-        <!--	Banner   --->
-        <!-- <div class="banner-full-row page-banner" style="background-image:url('images/breadcromb.jpg');">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h2 class="page-name float-left text-white text-uppercase mt-1 mb-0"><b>Update Property</b></h2>
-                    </div>
-                    <div class="col-md-6">
-                        <nav aria-label="breadcrumb" class="float-left float-md-right">
-                            <ol class="breadcrumb bg-transparent m-0 p-0">
-                                <li class="breadcrumb-item text-white"><a href="#">Home</a></li>
-                                <li class="breadcrumb-item active">Update Property</li>
-                            </ol>
-                        </nav>
+    <?php include("include/header.php"); // Make sure this file exists and paths are correct ?>
+
+    <div class="container mt-5 mb-5">
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 class="text-secondary text-center mb-4">Update Property</h2>
+            </div>
+        </div>
+
+        <?php
+        // Display messages passed via GET from redirects (e.g., after form submission or error)
+        // This ensures messages from the PHP block above are shown.
+        if (isset($_GET['msg']) && !empty($_GET['msg'])) {
+            $urlMsg = htmlspecialchars(urldecode($_GET['msg']));
+            $alertClass = 'alert-info'; // Default
+            if (strpos(strtolower($urlMsg), "success") !== false) {
+                $alertClass = 'alert-success';
+            } elseif (strpos(strtolower($urlMsg), "fail") !== false || strpos(strtolower($urlMsg), "error") !== false || strpos(strtolower($urlMsg), "invalid") !== false || strpos(strtolower($urlMsg), "not found") !== false || strpos(strtolower($urlMsg), "unauthorized") !== false) {
+                $alertClass = 'alert-danger';
+            }
+        ?>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="alert <?= $alertClass ?>"><?= $urlMsg; ?></div>
+                </div>
+            </div>
+        <?php
+        } elseif (!empty($msg) && !isset($_POST['add'])) {
+            // This handles initial messages if $msg was set before POST block (less likely with current flow)
+            $alertClass = (strpos(strtolower($msg), "success") !== false) ? 'alert-success' : 'alert-danger';
+        ?>
+             <div class="row">
+                <div class="col-lg-12">
+                    <div class="alert <?= $alertClass ?>"><?= htmlspecialchars($msg); ?></div>
+                </div>
+            </div>
+        <?php } ?>
+
+
+        <?php if ($propertyDetails): // Only show form if property details are loaded ?>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body p-5 bg-white shadow-sm rounded">
+                        <form method="post" enctype="multipart/form-data" action="submitpropertyupdate.php?id=<?= intval($pid); ?>">
+                            <input type="hidden" name="id" value="<?= intval($pid); ?>">
+
+                            <div class="form-group mb-3">
+                                <label for="title">Title</label>
+                                <input type="text" id="title" name="title" class="form-control" required value="<?= htmlspecialchars($propertyDetails['title']); ?>">
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="content">Content / Description</label>
+                                <textarea id="content" name="content" class="form-control" rows="5" required><?= htmlspecialchars($propertyDetails['pcontent']); ?></textarea>
+                            </div>
+
+                            <hr>
+                            <h5 class="text-secondary">Price & Signature</h5>
+                            <div class="form-group mb-3">
+                                <label for="price">Price (Data to be signed)</label>
+                                <input type="text" id="price" name="price" class="form-control" required value="<?= htmlspecialchars($propertyDetails['price']); ?>" placeholder="e.g., 5000000">
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="private_key">Your Private Key File (.pem)</label>
+                                <input type="file" id="private_key" name="private_key" class="form-control" required accept=".pem">
+                                <small class="form-text text-muted">This key will be used to sign the price. It must correspond to the public key associated with your user account.</small>
+                            </div>
+                             <hr>
+                            <h5 class="text-secondary">Property Details</h5>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="ptype">Property Type</label>
+                                        <select id="ptype" name="ptype" class="form-control form-select" required>
+                                            <option value="">Select Type</option>
+                                            <option <?= $propertyDetails['type'] == 'apartment' ? 'selected' : '' ?> value="apartment">Apartment</option>
+                                            <option <?= $propertyDetails['type'] == 'flat' ? 'selected' : '' ?> value="flat">Flat</option>
+                                            <option <?= $propertyDetails['type'] == 'building' ? 'selected' : '' ?> value="building">Building</option>
+                                            <option <?= $propertyDetails['type'] == 'house' ? 'selected' : '' ?> value="house">House</option>
+                                            <option <?= $propertyDetails['type'] == 'villa' ? 'selected' : '' ?> value="villa">Villa</option>
+                                            <option <?= $propertyDetails['type'] == 'office' ? 'selected' : '' ?> value="office">Office</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="stype">Sell Type (Sale/Rent)</label>
+                                        <select id="stype" name="stype" class="form-control form-select">
+                                            <option value="">Select Sell Type</option>
+                                            <option <?= ($propertyDetails['stype'] ?? '') == 'sale' ? 'selected' : '' ?> value="sale">For Sale</option>
+                                            <option <?= ($propertyDetails['stype'] ?? '') == 'rent' ? 'selected' : '' ?> value="rent">For Rent</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="bhk">BHK</label>
+                                        <input type="number" id="bhk" name="bhk" class="form-control" value="<?= htmlspecialchars($propertyDetails['bhk'] ?? ''); ?>" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="bed">Bedrooms</label>
+                                        <input type="number" id="bed" name="bed" class="form-control" value="<?= htmlspecialchars($propertyDetails['bedroom'] ?? ''); ?>" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="bath">Bathrooms</label>
+                                        <input type="number" id="bath" name="bath" class="form-control" value="<?= htmlspecialchars($propertyDetails['bathroom'] ?? ''); ?>" min="0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="balc">Balconies</label>
+                                        <input type="number" id="balc" name="balc" class="form-control" value="<?= htmlspecialchars($propertyDetails['balcony'] ?? ''); ?>" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="kitc">Kitchens</label>
+                                        <input type="number" id="kitc" name="kitc" class="form-control" value="<?= htmlspecialchars($propertyDetails['kitchen'] ?? ''); ?>" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="hall">Halls</label>
+                                        <input type="number" id="hall" name="hall" class="form-control" value="<?= htmlspecialchars($propertyDetails['hall'] ?? ''); ?>" min="0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="floor">Floor</label>
+                                        <input type="text" id="floor" name="floor" class="form-control" value="<?= htmlspecialchars($propertyDetails['floor'] ?? ''); ?>" placeholder="e.g., 3rd, Ground">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="totalfl">Total Floors in Building</label>
+                                        <input type="number" id="totalfl" name="totalfl" class="form-control" value="<?= htmlspecialchars($propertyDetails['totalfloor'] ?? ''); ?>" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="asize">Area Size (sq ft)</label>
+                                        <input type="text" id="asize" name="asize" class="form-control" value="<?= htmlspecialchars($propertyDetails['size'] ?? ''); ?>" placeholder="e.g., 1200">
+                                    </div>
+                                </div>
+                            </div>
+                             <hr>
+                            <h5 class="text-secondary">Location</h5>
+                            <div class="form-group mb-3">
+                                <label for="loc">Address / Location</label>
+                                <input type="text" id="loc" name="loc" class="form-control" value="<?= htmlspecialchars($propertyDetails['location'] ?? ''); ?>">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="city">City</label>
+                                        <input type="text" id="city" name="city" class="form-control" value="<?= htmlspecialchars($propertyDetails['city'] ?? ''); ?>">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="state">State</label>
+                                        <input type="text" id="state" name="state" class="form-control" value="<?= htmlspecialchars($propertyDetails['state'] ?? ''); ?>">
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <h5 class="text-secondary">Status & Images</h5>
+                            <div class="form-group mb-3">
+                                <label for="status">Status</label>
+                                <select id="status" name="status" class="form-control form-select" required>
+                                    <option value="active" <?= ($propertyDetails['status'] ?? '') == 'active' ? 'selected' : ''; ?>>Active</option>
+                                    <option value="inactive" <?= ($propertyDetails['status'] ?? '') == 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                                </select>
+                            </div>
+
+                            <!-- Images (show current filename, option to upload new) -->
+                            <div class="form-group mb-3">
+                                <label for="aimage">Main Image</label>
+                                <?php if(!empty($propertyDetails['pimage'])): ?>
+                                    <p class="current-image-info">Current: <?= htmlspecialchars($propertyDetails['pimage']); ?> <br> <img src="admin/property/<?= htmlspecialchars($propertyDetails['pimage']); ?>" alt="Current Main Image" style="max-width: 100px; max-height: 100px;"></p>
+                                <?php endif; ?>
+                                <input type="file" id="aimage" name="aimage" class="form-control" accept="image/*">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="aimage1">Image 2</label>
+                                <?php if(!empty($propertyDetails['pimage1'])): ?>
+                                    <p class="current-image-info">Current: <?= htmlspecialchars($propertyDetails['pimage1']); ?>  <br> <img src="admin/property/<?= htmlspecialchars($propertyDetails['pimage1']); ?>" alt="Current Image 2" style="max-width: 100px; max-height: 100px;"></p>
+                                <?php endif; ?>
+                                <input type="file" id="aimage1" name="aimage1" class="form-control" accept="image/*">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="aimage2">Image 3</label>
+                                 <?php if(!empty($propertyDetails['pimage2'])): ?>
+                                    <p class="current-image-info">Current: <?= htmlspecialchars($propertyDetails['pimage2']); ?>  <br> <img src="admin/property/<?= htmlspecialchars($propertyDetails['pimage2']); ?>" alt="Current Image 3" style="max-width: 100px; max-height: 100px;"></p>
+                                <?php endif; ?>
+                                <input type="file" id="aimage2" name="aimage2" class="form-control" accept="image/*">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="aimage3">Image 4</label>
+                                 <?php if(!empty($propertyDetails['pimage3'])): ?>
+                                    <p class="current-image-info">Current: <?= htmlspecialchars($propertyDetails['pimage3']); ?>  <br> <img src="admin/property/<?= htmlspecialchars($propertyDetails['pimage3']); ?>" alt="Current Image 4" style="max-width: 100px; max-height: 100px;"></p>
+                                <?php endif; ?>
+                                <input type="file" id="aimage3" name="aimage3" class="form-control" accept="image/*">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="aimage4">Image 5</label>
+                                 <?php if(!empty($propertyDetails['pimage4'])): ?>
+                                    <p class="current-image-info">Current: <?= htmlspecialchars($propertyDetails['pimage4']); ?>  <br> <img src="admin/property/<?= htmlspecialchars($propertyDetails['pimage4']); ?>" alt="Current Image 5" style="max-width: 100px; max-height: 100px;"></p>
+                                <?php endif; ?>
+                                <input type="file" id="aimage4" name="aimage4" class="form-control" accept="image/*">
+                            </div>
+                            <hr>
+                            <button type="submit" name="add" class="btn btn-primary w-100">Update Property</button>
+
+                        </form>
                     </div>
                 </div>
             </div>
-        </div> -->
-         <!--	Banner   --->
-		 
-		 
-		<!--	Submit property   -->
-        <div class="full-row">
-            <div class="container">
-                    <div class="row">
-						<div class="col-lg-12">
-							<h2 class="text-secondary double-down-line text-center">Update Property</h2>
-                        </div>
-					</div>
-                    <div class="row p-5 bg-white">
-                        <form method="post" enctype="multipart/form-data">
-								
-								<?php
-									
-									$pid=$_REQUEST['id'];
-									$query=mysqli_query($con,"select * from property where pid='$pid'");
-									while($row=mysqli_fetch_row($query))
-									{
-								?>
-												
-								<div class="description">
-									<h5 class="text-secondary">Basic Information</h5><hr>
-										<div class="row">
-											<div class="col-xl-12">
-												<div class="form-group row">
-													<label class="col-lg-2 col-form-label">Title</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="title" required value="<?php echo $row['1']; ?>">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-2 col-form-label">Content</label>
-													<div class="col-lg-9">
-														<textarea class="tinymce form-control" name="content" rows="10" cols="30"><?php echo $row['2']; ?></textarea>
-													</div>
-												</div>
-												
-											</div><!-- FOR MORE PROJECTS visit: codeastro.com -->
-											<div class="col-xl-6">
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Property Type</label>
-													<div class="col-lg-9">
-														<select class="form-control" required name="ptype">
-															<option value="">Select Type</option>
-															<option value="apartment">Apartment</option>
-															<option value="flat">Flat</option>
-															<option value="building">Building</option>
-															<option value="house">House</option>
-															<option value="villa">Villa</option>
-															<option value="office">Office</option>
-														</select>
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Selling Type</label>
-													<div class="col-lg-9">
-														<select class="form-control" required name="stype">
-															<option value="">Select Status</option>
-															<option value="rent">Rent</option>
-															<option value="sale">Sale</option>
-														</select>
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Bathroom</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="bath" required value="<?php echo $row['7']; ?>">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Kitchen</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="kitc" required value="<?php echo $row['9']; ?>">
-													</div>
-												</div>
-												
-											</div>   
-											<div class="col-xl-6"><!-- FOR MORE PROJECTS visit: codeastro.com -->
-												<div class="form-group row mb-3">
-													<label class="col-lg-3 col-form-label">BHK</label>
-													<div class="col-lg-9">
-														<select class="form-control" required name="bhk">
-															<option value="">Select BHK</option>
-															<option value="1 BHK">1 BHK</option>
-															<option value="2 BHK">2 BHK</option>
-															<option value="3 BHK">3 BHK</option>
-															<option value="4 BHK">4 BHK</option>
-															<option value="5 BHK">5 BHK</option>
-															<option value="1,2 BHK">1,2 BHK</option>
-															<option value="2,3 BHK">2,3 BHK</option>
-															<option value="2,3,4 BHK">2,3,4 BHK</option>
-														</select>
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Bedroom</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="bed" required value="<?php echo $row['6']; ?>">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Balcony</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="balc" required value="<?php echo $row['8']; ?>">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Hall</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="hall" required value="<?php echo $row['10']; ?>">
-													</div>
-												</div>
-												
-											</div>
-										</div>
-										<h5 class="text-secondary">Price & Location</h5><hr>
-										<div class="row">
-											<div class="col-xl-6">
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Floor</label>
-													<div class="col-lg-9">
-														<select class="form-control" required name="floor">
-															<option value="">Select Floor</option>
-															<option value="1st Floor">1st Floor</option>
-															<option value="2nd Floor">2nd Floor</option>
-															<option value="3rd Floor">3rd Floor</option>
-															<option value="4th Floor">4th Floor</option>
-															<option value="5th Floor">5th Floor</option>
-														</select>
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Price</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="price" required value="<?php echo $row['13']; ?>">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">City</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="city" required value="<?php echo $row['15']; ?>">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">State</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="state" required value="<?php echo $row['16']; ?>">
-													</div>
-												</div>
-											</div><!-- FOR MORE PROJECTS visit: codeastro.com -->
-											<div class="col-xl-6">
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Total Floor</label>
-													<div class="col-lg-9">
-														<select class="form-control" required name="totalfl">
-															<option value="">Select Floor</option>
-															<option value="1 Floor">1 Floor</option>
-															<option value="2 Floor">2 Floor</option>
-															<option value="3 Floor">3 Floor</option>
-															<option value="4 Floor">4 Floor</option>
-															<option value="5 Floor">5 Floor</option>
-															<option value="6 Floor">6 Floor</option>
-															<option value="7 Floor">7 Floor</option>
-															<option value="8 Floor">8 Floor</option>
-															<option value="9 Floor">9 Floor</option>
-															<option value="10 Floor">10 Floor</option>
-															<option value="11 Floor">11 Floor</option>
-															<option value="12 Floor">12 Floor</option>
-															<option value="13 Floor">13 Floor</option>
-															<option value="14 Floor">14 Floor</option>
-															<option value="15 Floor">15 Floor</option>
-														</select>
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Area Size</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="asize" required value="<?php echo $row['12']; ?>">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Address</label>
-													<div class="col-lg-9">
-														<input type="text" class="form-control" name="loc" required value="<?php echo $row['14']; ?>">
-													</div>
-												</div>
-												
-											</div>
-										</div>
-										
-										<div class="form-group row">
-											<label class="col-lg-2 col-form-label">Feature</label>
-											<div class="col-lg-9">
-											<p class="alert alert-danger">* Important Please Do Not Remove Below Content Only Change <b>Yes</b> Or <b>No</b> or Details and Do Not Add More Details</p>
-											
-											<textarea class="tinymce form-control" name="feature" rows="10" cols="30">
-												
-													<?php echo $row['17']; ?>
-												
-											</textarea>
-											</div>
-										</div>
-												
-										<h5 class="text-secondary">Image & Status</h5><hr>
-										<div class="row"><!-- FOR MORE PROJECTS visit: codeastro.com -->
-											<div class="col-xl-6">
-												
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Image</label>
-													<div class="col-lg-9">
-														<input class="form-control" name="aimage" type="file" required="">
-														<img src="admin/property/<?php echo $row['18'];?>" alt="pimage" height="150" width="180">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Image 2</label>
-													<div class="col-lg-9">
-														<input class="form-control" name="aimage2" type="file" required="">
-														<img src="admin/property/<?php echo $row['20'];?>" alt="pimage" height="150" width="180">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Image 4</label>
-													<div class="col-lg-9">
-														<input class="form-control" name="aimage4" type="file" required="">
-														<img src="admin/property/<?php echo $row['22'];?>" alt="pimage" height="150" width="180">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Status</label>
-													<div class="col-lg-9">
-														<select class="form-control"  required name="status">
-															<option value="">Select Status</option>
-															<option value="available">Available</option>
-															<option value="sold out">Sold Out</option>
-														</select>
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Basement Floor Plan Image</label>
-													<div class="col-lg-9">
-														<input class="form-control" name="fimage1" type="file">
-														<img src="admin/property/<?php echo $row['26'];?>" alt="pimage" height="150" width="180">
-													</div>
-												</div>
-											</div>
-											<div class="col-xl-6">
-												
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Image 1</label>
-													<div class="col-lg-9">
-														<input class="form-control" name="aimage1" type="file" required="">
-														<img src="admin/property/<?php echo $row['19'];?>" alt="pimage" height="150" width="180">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">image 3</label>
-													<div class="col-lg-9">
-														<input class="form-control" name="aimage3" type="file" required="">
-														<img src="admin/property/<?php echo $row['21'];?>" alt="pimage" height="150" width="180">
-													</div>
-												</div><!-- FOR MORE PROJECTS visit: codeastro.com -->
-												
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Floor Plan Image</label>
-													<div class="col-lg-9">
-														<input class="form-control" name="fimage" type="file">
-														<img src="admin/property/<?php echo $row['25'];?>" alt="pimage" height="150" width="180">
-													</div>
-												</div>
-												<div class="form-group row">
-													<label class="col-lg-3 col-form-label">Ground Floor Plan Image</label>
-													<div class="col-lg-9">
-														<input class="form-control" name="fimage2" type="file">
-														<img src="admin/property/<?php echo $row['27'];?>" alt="pimage" height="150" width="180">
-													</div>
-												</div>
-											</div>
-										</div>
-
-										
-											<input type="submit" value="Submit" class="btn btn-success"name="add" style="margin-left:200px;">
-										
-									</div>
-								</form>
-								
-							<?php
-								} 
-							?>
-                    </div>            
-            </div>
         </div>
-	<!--	Submit property   -->
-        
-        <!-- FOR MORE PROJECTS visit: codeastro.com -->
-        <!--	Footer   start-->
-		<?php include("include/footer.php");?>
-		<!--	Footer   start-->
-        
-        <!-- Scroll to top --> 
-        <a href="#" class="bg-secondary text-white hover-text-secondary" id="scroll"><i class="fas fa-angle-up"></i></a> 
-        <!-- End Scroll To top --> 
+        <?php else: // This 'else' corresponds to 'if ($propertyDetails)'
+                // If $propertyDetails was not found initially, $msg would have been set.
+                // This block is a fallback if $propertyDetails becomes unexpectedly unavailable
+                // and no GET message was set.
+                if (empty($_GET['msg']) && empty($msg) && !isset($_POST['add'])) :
+        ?>
+             <div class="row">
+                <div class="col-lg-12">
+                    <div class="alert alert-warning">Could not load property details. It might have been deleted or the ID is incorrect.</div>
+                </div>
+            </div>
+        <?php endif; ?>
+        <?php endif; ?>
     </div>
+
+    <?php include("include/footer.php"); // Make sure this file exists and paths are correct ?>
 </div>
-<!-- Wrapper End --> 
-<!-- FOR MORE PROJECTS visit: codeastro.com -->
-<!--	Js Link
-============================================================--> 
-<script src="js/jquery.min.js"></script> 
-<script src="js/tinymce/tinymce.min.js"></script>
-<script src="js/tinymce/init-tinymce.min.js"></script>
-<!--jQuery Layer Slider --> 
-<script src="js/greensock.js"></script> 
-<script src="js/layerslider.transitions.js"></script> 
-<script src="js/layerslider.kreaturamedia.jquery.js"></script> 
-<!--jQuery Layer Slider --> 
-<script src="js/popper.min.js"></script> 
-<script src="js/bootstrap.min.js"></script> 
-<script src="js/owl.carousel.min.js"></script> 
-<script src="js/tmpl.js"></script> 
-<script src="js/jquery.dependClass-0.1.js"></script> 
-<script src="js/draggable-0.1.js"></script> 
-<script src="js/jquery.slider.js"></script> 
-<script src="js/wow.js"></script> 
-<script src="js/custom.js"></script>
+
+<!-- JS -->
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script> <!-- Bootstrap 5 uses bundle for Popper -->
 </body>
 </html>

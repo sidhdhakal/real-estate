@@ -4,419 +4,460 @@ session_cache_limiter(false);
 session_start();
 include("config.php");
 require_once 'verify_signature.php';
-						
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Meta Tags -->
-    <!-- FOR MORE PROJECTS visit: codeastro.com -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Real Estate PHP">
-    <meta name="keywords" content="">
-    <meta name="author" content="Unicoder">
+    <title>Property Detail - Real Estate PHP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="images/favicon.ico">
-
-    <!--	Fonts
-	========================================================-->
-    <link href="https://fonts.googleapis.com/css?family=Muli:400,400i,500,600,700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Muli:400,500,600,700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Comfortaa:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/fontawesome.min.css">
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+    <link rel="stylesheet" href="css/style.css">
 
-    <!--	Css Link
-	========================================================-->
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap-slider.css">
-    <link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
-    <link rel="stylesheet" type="text/css" href="css/layerslider.css">
-    <link rel="stylesheet" type="text/css" href="css/color.css" id="color-change">
-    <link rel="stylesheet" type="text/css" href="css/owl.carousel.min.css">
-    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
-    <link rel="stylesheet" type="text/css" href="fonts/flaticon/flaticon.css">
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <style>
+        /* Base Style Reset */
+        body {
+            font-family: 'Muli', sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            line-height: 1.6;
+        }
 
-    <!--	Title
-	=========================================================-->
-    <title>Real Estate PHP</title>
+        .text {
+            color: #e74c3c; /* Red accent color */
+        }
+
+        .signature-message {
+            font-weight: bold;
+            font-size: 1.05em;
+            padding: 12px 20px;
+            background-color: #eafaf1;
+            color: #27ae60;
+            border-left: 6px solid #2ecc71;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+
+        /* Slider */
+        #slider-container {
+            width: 100%;
+            max-width: 960px;
+            margin: 40px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        #slider-container img {
+            width: 100%;
+            max-height: 550px;
+            object-fit: cover;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #slider-container img:hover {
+            transform: scale(1.02);
+        }
+
+        /* Property Details */
+        .property-details {
+            padding: 20px 0;
+        }
+
+        .property-quantity {
+            background-color: #e74c3c;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        .property-quantity ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .property-quantity li {
+            padding: 10px 16px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* Tables */
+        table.table {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+            padding: 12px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        /* Agent Section */
+        .agent-contact {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .agent-contact img {
+            width: 100%;
+            max-width: 100px;
+            height: auto;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .agent-contact h6 {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #e74c3c;
+            text-transform: capitalize;
+        }
+
+        .agent-contact ul {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .agent-contact ul li {
+            margin-bottom: 6px;
+        }
+
+        /* Appointment Form */
+        .appointment-form {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-top: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .appointment-form label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .appointment-form input,
+        .appointment-form textarea {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 6px;
+            margin-bottom: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .appointment-form input:focus,
+        .appointment-form textarea:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 5px rgba(231, 76, 60, 0.4);
+        }
+
+        .appointment-form button {
+            background-color: #e74c3c;
+            color: #fff;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .appointment-form button:hover {
+            background-color: #c0392b;
+        }
+
+        /* Responsive */
+        @media (max-width: 767px) {
+            .property-quantity ul {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .appointment-form {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
-
 <body>
 
-    <!--	Page Loader
-=============================================================
-<div class="page-loader position-fixed z-index-9999 w-100 bg-white vh-100">
-	<div class="d-flex justify-content-center y-middle position-relative">
-	  <div class="spinner-border" role="status">
-		<span class="sr-only">Loading...</span>
-	  </div>
-	</div>
-</div>
--->
+<div id="page-wrapper">
+    <?php include("include/header.php"); ?>
 
+    <div class="container">
+        <?php
+        $id = isset($_REQUEST['pid']) ? intval($_REQUEST['pid']) : 0;
+        if ($id <= 0) {
+            echo "<p>Invalid property ID.</p>";
+        } else {
+            $query = mysqli_query($con, "SELECT property.*, user.* FROM `property`, `user` WHERE property.uid=user.uid AND pid='$id'");
+            if (mysqli_num_rows($query) == 0) {
+                echo "<p>Property not found.</p>";
+            } else {
+                while ($row = mysqli_fetch_assoc($query)) {
+                    $digitalSignature = $row['digital_signature'];
+                    $publicKey        = $row['public_key'];
+                    $price            = $row['price'];
+                    $result = verifyDigitalSignature($price, $digitalSignature, $publicKey);
+        ?>
 
-    <div id="page-wrapper">
-        <div class="row">
-            <!--	Header start  -->
-            <?php include("include/header.php");?>
-            <!--	Header end  -->
+        <!-- === Property Image Slider === -->
+       <div class="row justify-content-center text-center">
+    <div class="col-12">
+        <div id="slider-container">
+            <div class="slider-wrapper">
+                <?php
+$imageFields = ['pimage', 'pimage1', 'pimage2', 'pimage3', 'pimage4'];
+foreach ($imageFields as $field) {
+    if (!empty($row[$field])) {
+        $imagePath = "admin/property/" . htmlspecialchars($row[$field]);
+        echo '<img class="slider-slide" src="' . $imagePath . '" alt="Property Image">';
+    }
+}
+?>
 
-            <!--	Banner   --->
-            <div class="banner-full-row page-banner" style="background-image:url('images/breadcromb.jpg');">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h2 class="page-name float-left text-white text-uppercase mt-1 mb-0"><b>Property Detail</b>
-                            </h2>
-                        </div>
-                        <div class="col-md-6">
-                            <nav aria-label="breadcrumb" class="float-left float-md-right">
-                                <ol class="breadcrumb bg-transparent m-0 p-0">
-                                    <li class="breadcrumb-item text-white"><a href="#">Home</a></li>
-                                    <li class="breadcrumb-item active">Property Detail</li>
-                                </ol>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
             </div>
-            <!--	Banner   --->
-
-
-            <div class="full-row">
-                <div class="container">
-                    <div class="row">
-                        <!-- FOR MORE PROJECTS visit: codeastro.com -->
-                        <?php
-						$id=$_REQUEST['pid']; 
-						$query=mysqli_query($con,"SELECT property.*, user.* FROM `property`,`user` WHERE property.uid=user.uid and pid='$id'");
-						while($row=mysqli_fetch_array($query))
-						{
-					?>
-                        <div class="col-lg-8">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div id="single-property"
-                                        style="width:1200px; height:700px; margin:30px auto 50px;">
-                                        <!-- Slide 1-->
-                                        <div class="ls-slide"
-                                            data-ls="duration:7500; transition2d:5; kenburnszoom:in; kenburnsscale:1.2;">
-                                            <img width="1920" height="1080"
-                                                src="admin/property/<?php echo $row['18'];?>" class="ls-bg" alt="" />
-                                        </div>
-
-                                        <!-- Slide 2-->
-                                        <div class="ls-slide"
-                                            data-ls="duration:7500; transition2d:5; kenburnszoom:in; kenburnsscale:1.2;">
-                                            <img width="1920" height="1080"
-                                                src="admin/property/<?php echo $row['19'];?>" class="ls-bg" alt="" />
-                                        </div>
-
-                                        <!-- Slide 3-->
-                                        <div class="ls-slide"
-                                            data-ls="duration:7500; transition2d:5; kenburnszoom:in; kenburnsscale:1.2;">
-                                            <img width="1920" height="1080"
-                                                src="admin/property/<?php echo $row['20'];?>" class="ls-bg" alt="" />
-                                        </div>
-
-                                        <!-- Slide 4-->
-                                        <div class="ls-slide"
-                                            data-ls="duration:7500; transition2d:5; kenburnszoom:in; kenburnsscale:1.2;">
-                                            <img width="1920" height="1080"
-                                                src="admin/property/<?php echo $row['21'];?>" class="ls-bg" alt="" />
-                                        </div>
-
-                                        <!-- Slide 5-->
-                                        <div class="ls-slide"
-                                            data-ls="duration:7500; transition2d:5; kenburnszoom:in; kenburnsscale:1.2;">
-                                            <img width="1920" height="1080"
-                                                src="admin/property/<?php echo $row['22'];?>" class="ls-bg" alt="" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php
-                            $digitaSignature = $row["digital_signature"];
-                            $publicKey = $row["public_key"];
-                            $title = $row["title"];
-                            $result = verifyDigitalSignature($title, $digitaSignature, $publicKey);
-                            echo $result['message'];
-                            ?>
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <div class="bg-success d-table px-3 py-2 rounded text-white text-capitalize">For
-                                        <?php echo $row['5'];?></div>
-                                    <h5 class="mt-2 text-secondary text-capitalize"><?php echo $row['1'];?></h5>
-                                    <span class="mb-sm-20 d-block text-capitalize"><i
-                                            class="fas fa-map-marker-alt text-success font-12"></i>
-                                        &nbsp;<?php echo $row['14'];?></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="text-success text-left h5 my-2 text-md-right">$<?php echo $row['13'];?>
-                                    </div>
-                                    <div class="text-left text-md-right">Price</div>
-                                </div>
-                            </div>
-                            <div class="property-details">
-                                <div class="bg-gray property-quantity px-4 pt-4 w-100">
-                                    <ul>
-                                        <li><span class="text-secondary"><?php echo $row['12'];?></span> Sqft</li>
-                                        <li><span class="text-secondary"><?php echo $row['6'];?></span> Bedroom</li>
-                                        <li><span class="text-secondary"><?php echo $row['7'];?></span> Bathroom</li>
-                                        <li><span class="text-secondary"><?php echo $row['8'];?></span> Balcony</li>
-                                        <li><span class="text-secondary"><?php echo $row['10'];?></span> Hall</li>
-                                        <li><span class="text-secondary"><?php echo $row['9'];?></span> Kitchen</li>
-                                    </ul>
-                                </div>
-                                <h4 class="text-secondary my-4">Description</h4>
-                                <p><?php echo $row['2'];?></p>
-
-                                <h5 class="mt-5 mb-4 text-secondary">Property Summary</h5>
-                                <div class="table-striped font-14 pb-2">
-                                    <table class="w-100">
-                                        <!-- FOR MORE PROJECTS visit: codeastro.com -->
-                                        <tbody>
-                                            <tr>
-                                                <td>BHK :</td>
-                                                <td class="text-capitalize"><?php echo $row['4'];?></td>
-                                                <td>Property Type :</td>
-                                                <td class="text-capitalize"><?php echo $row['3'];?></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Floor :</td>
-                                                <td class="text-capitalize"><?php echo $row['11'];?></td>
-                                                <td>Total Floor :</td>
-                                                <td class="text-capitalize"><?php echo $row['28'];?></td>
-                                            </tr>
-                                            <tr>
-                                                <td>City :</td>
-                                                <td class="text-capitalize"><?php echo $row['15'];?></td>
-                                                <td>State :</td>
-                                                <td class="text-capitalize"><?php echo $row['16'];?></td>
-                                            </tr>
-
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <h5 class="mt-5 mb-4 text-secondary">Features</h5>
-                                <div class="row">
-                                    <?php echo $row['17'];?>
-
-                                </div>
-                                <!-- FOR MORE PROJECTS visit: codeastro.com -->
-                                <h5 class="mt-5 mb-4 text-secondary">Floor Plans</h5>
-                                <div class="accordion" id="accordionExample">
-                                    <button
-                                        class="bg-gray hover-bg-success hover-text-white text-ordinary py-3 px-4 mb-1 w-100 text-left rounded position-relative"
-                                        type="button" data-toggle="collapse" data-target="#collapseOne"
-                                        aria-expanded="true" aria-controls="collapseOne"> Floor Plans </button>
-                                    <div id="collapseOne" class="collapse show p-4" aria-labelledby="headingOne"
-                                        data-parent="#accordionExample">
-                                        <img src="admin/property/<?php echo $row['25'];?>" alt="Not Available">
-                                    </div>
-                                    <button
-                                        class="bg-gray hover-bg-success hover-text-white text-ordinary py-3 px-4 mb-1 w-100 text-left rounded position-relative collapsed"
-                                        type="button" data-toggle="collapse" data-target="#collapseTwo"
-                                        aria-expanded="false" aria-controls="collapseTwo">Basement Floor</button>
-                                    <div id="collapseTwo" class="collapse p-4" aria-labelledby="headingTwo"
-                                        data-parent="#accordionExample">
-                                        <img src="admin/property/<?php echo $row['26'];?>" alt="Not Available">
-                                    </div>
-                                    <button
-                                        class="bg-gray hover-bg-success hover-text-white text-ordinary py-3 px-4 mb-1 w-100 text-left rounded position-relative collapsed"
-                                        type="button" data-toggle="collapse" data-target="#collapseThree"
-                                        aria-expanded="false" aria-controls="collapseThree">Ground Floor</button>
-                                    <div id="collapseThree" class="collapse p-4" aria-labelledby="headingThree"
-                                        data-parent="#accordionExample">
-                                        <img src="admin/property/<?php echo $row['27'];?>" alt="Not Available">
-                                    </div>
-                                </div>
-
-                                <h5 class="mt-5 mb-4 text-secondary double-down-line-left position-relative">Contact
-                                    Agent
-                                </h5>
-                                <div class="agent-contact pt-60">
-                                    <div class="row">
-                                        <div class="col-sm-4 col-lg-3"> <img
-                                                src="admin/user/<?php echo $row['uimage']; ?>" alt="" height="200"
-                                                width="170"> </div>
-                                        <div class="col-sm-8 col-lg-9">
-                                            <div class="agent-data text-ordinary mt-sm-20">
-                                                <h6 class="text-success text-capitalize"><?php echo $row['uname'];?>
-                                                </h6>
-                                                <ul class="mb-3">
-                                                    <li><?php echo $row['uphone'];?></li>
-                                                    <li><?php echo $row['uemail'];?></li>
-                                                </ul>
-
-                                                <div class="mt-3 text-secondary hover-text-success">
-                                                    <ul>
-                                                        <li class="float-left mr-3"><a href="#"><i
-                                                                    class="fab fa-facebook-f"></i></a></li>
-                                                        <li class="float-left mr-3"><a href="#"><i
-                                                                    class="fab fa-twitter"></i></a></li>
-                                                        <li class="float-left mr-3"><a href="#"><i
-                                                                    class="fab fa-google-plus-g"></i></a></li>
-                                                        <li class="float-left mr-3"><a href="#"><i
-                                                                    class="fab fa-linkedin-in"></i></a></li>
-                                                        <li class="float-left mr-3"><a href="#"><i
-                                                                    class="fas fa-rss"></i></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- FOR MORE PROJECTS visit: codeastro.com -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <?php } ?>
-
-                        <div class="col-lg-4">
-                            <!-- <h4 class="double-down-line-left text-secondary position-relative pb-4 mb-4 mt-md-50">Send Message</h4>
-                        <form method="post" action="#">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control" placeholder="Enter Name">
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control" placeholder="Enter Email">
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <input type="text" class="form-control" placeholder="Enter Phone">
-                                    </div>
-                                </div>
-								<div class="col-md-12">
-                                    <div class="form-group">
-										<textarea class="form-control" placeholder="Enter Message"></textarea>
-                                    </div>
-                                </div>
-								
-                                <div class="col-md-12">
-                                    <div class="form-group mt-4">
-                                        <button type="submit" class="btn btn-success w-100">Search Property</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form> -->
-                            <h4 class="double-down-line-left text-secondary position-relative pb-4 my-4">Instalment
-                                Calculator</h4>
-                            <form class="d-inline-block w-100" action="calc.php" method="post">
-                                <label class="sr-only">Property Amount</label>
-                                <div class="input-group mb-2 mr-sm-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">$</div>
-                                    </div>
-                                    <input type="text" class="form-control" name="amount" placeholder="Property Price">
-                                </div>
-                                <label class="sr-only">Month</label>
-                                <div class="input-group mb-2 mr-sm-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text"><i class="far fa-calendar-alt"></i></div>
-                                    </div>
-                                    <input type="text" class="form-control" name="month" placeholder="Duration Year">
-                                </div>
-                                <label class="sr-only">Interest Rate</label>
-                                <div class="input-group mb-2 mr-sm-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">%</div>
-                                    </div>
-                                    <input type="text" class="form-control" name="interest" placeholder="Interest Rate">
-                                </div>
-                                <button type="submit" value="submit" name="calc" class="btn btn-danger mt-4">Calclute
-                                    Instalment</button>
-                            </form>
-                            <h4 class="double-down-line-left text-secondary position-relative pb-4 mb-4 mt-5">Featured
-                                Property</h4>
-                            <ul class="property_list_widget">
-
-                                <?php 
-                            $query=mysqli_query($con,"SELECT * FROM `property` WHERE isFeatured = 1 ORDER BY date DESC LIMIT 3");
-                                    while($row=mysqli_fetch_array($query))
-                                    {
-                            ?>
-                                <li> <img src="admin/property/<?php echo $row['18'];?>" alt="pimage">
-                                    <h6 class="text-secondary hover-text-success text-capitalize"><a
-                                            href="propertydetail.php?pid=<?php echo $row['0'];?>"><?php echo $row['1'];?></a>
-                                    </h6>
-                                    <span class="font-14"><i class="fas fa-map-marker-alt icon-success icon-small"></i>
-                                        <?php echo $row['14'];?></span>
-
-                                </li>
-                                <?php } ?>
-
-                            </ul>
-
-                            <div class="sidebar-widget mt-5">
-                                <h4 class="double-down-line-left text-secondary position-relative pb-4 mb-4">Recently
-                                    Added
-                                    Property</h4>
-                                <ul class="property_list_widget">
-
-                                    <?php 
-								$query=mysqli_query($con,"SELECT * FROM `property` ORDER BY date DESC LIMIT 7");
-										while($row=mysqli_fetch_array($query))
-										{
-								?>
-                                    <li> <img src="admin/property/<?php echo $row['18'];?>" alt="pimage">
-                                        <h6 class="text-secondary hover-text-success text-capitalize"><a
-                                                href="propertydetail.php?pid=<?php echo $row['0'];?>"><?php echo $row['1'];?></a>
-                                        </h6>
-                                        <span class="font-14"><i
-                                                class="fas fa-map-marker-alt icon-success icon-small"></i>
-                                            <?php echo $row['14'];?></span>
-
-                                    </li>
-                                    <?php } ?>
-
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!--	Footer   start-->
-            <?php include("include/footer.php");?>
-            <!--	Footer   start-->
-
-
-            <!-- Scroll to top -->
-            <a href="#" class="bg-secondary text-white hover-text-secondary" id="scroll"><i
-                    class="fas fa-angle-up"></i></a>
-            <!-- End Scroll To top -->
+            <button class="slider-btn prev-btn" aria-label="Previous">&#10094;</button>
+            <button class="slider-btn next-btn" aria-label="Next">&#10095;</button>
         </div>
     </div>
-    <!-- Wrapper End -->
+</div>
 
-    <!--	Js Link
-============================================================-->
-    <script src="js/jquery.min.js"></script>
-    <!--jQuery Layer Slider -->
-    <script src="js/greensock.js"></script>
-    <script src="js/layerslider.transitions.js"></script>
-    <script src="js/layerslider.kreaturamedia.jquery.js"></script>
-    <!--jQuery Layer Slider -->
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/owl.carousel.min.js"></script>
-    <script src="js/tmpl.js"></script>
-    <script src="js/jquery.dependClass-0.1.js"></script>
-    <script src="js/draggable-0.1.js"></script>
-    <script src="js/jquery.slider.js"></script>
-    <script src="js/wow.js"></script>
-    <script src="js/custom.js"></script>
+<style>
+    #slider-container {
+        position: relative;
+        max-width: 960px;
+        margin: 40px auto;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        background: #fff;
+    }
+    .slider-wrapper {
+        display: flex;
+        overflow-x: scroll;
+        scroll-behavior: smooth;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;  /* IE 10+ */
+    }
+    .slider-wrapper::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+    .slider-slide {
+        flex: 0 0 auto;
+        width: 300px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        user-select: none;
+    }
+    .slider-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0,0,0,0.4);
+        color: white;
+        border: none;
+        padding: 12px 18px;
+        font-size: 28px;
+        cursor: pointer;
+        border-radius: 50%;
+        user-select: none;
+        transition: background 0.3s ease;
+        z-index: 10;
+    }
+    .slider-btn:hover {
+        background: rgba(0,0,0,0.7);
+    }
+    .prev-btn {
+        left: 16px;
+    }
+    .next-btn {
+        right: 16px;
+    }
+</style>
 
+<script>
+    (function(){
+        const wrapper = document.querySelector('#slider-container .slider-wrapper');
+        const prevBtn = document.querySelector('#slider-container .prev-btn');
+        const nextBtn = document.querySelector('#slider-container .next-btn');
+        const slideWidth = 320; // image width + margin (300 + 2*10 margin left and right)
+
+        prevBtn.addEventListener('click', () => {
+            wrapper.scrollBy({ left: -slideWidth, behavior: 'smooth' });
+        });
+
+        nextBtn.addEventListener('click', () => {
+            wrapper.scrollBy({ left: slideWidth, behavior: 'smooth' });
+        });
+    })();
+</script>
+
+
+        <div class="signature-message"><?= htmlspecialchars($result['message']); ?></div>
+
+        <!-- === Property Title & Price === -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="d-table px-3 py-2 rounded text-white text-capitalize" style="background-color: #e74c3c;">For <?= htmlspecialchars($row['stype']); ?></div>
+                <h5 class="mt-2 text-secondary text-capitalize"><?= htmlspecialchars($row['title']); ?></h5>
+                <span class="d-block text-capitalize"><i class="fas fa-map-marker-alt text-success"></i> <?= htmlspecialchars($row['location']); ?></span>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <h5 class="text mt-2">Rs. <?= htmlspecialchars($row['price']); ?></h5>
+            </div>
+        </div>
+
+        <!-- === Property Details === -->
+        <div class="property-details">
+            <div class="property-quantity px-4 pt-4 w-100">
+                <ul>
+                    <li><?= htmlspecialchars($row['size']); ?> Sqft</li>
+                    <li><?= htmlspecialchars($row['bedroom']); ?> Bedroom</li>
+                    <li><?= htmlspecialchars($row['bathroom']); ?> Bathroom</li>
+                    <li><?= htmlspecialchars($row['balcony']); ?> Balcony</li>
+                    <li><?= htmlspecialchars($row['hall']); ?> Hall</li>
+                    <li><?= htmlspecialchars($row['kitchen']); ?> Kitchen</li>
+                </ul>
+            </div>
+
+            <h4 class="text my-4">Description</h4>
+            <p><?= htmlspecialchars($row['pcontent']); ?></p>
+
+            <h5 class="mt-5 mb-4 text">Property Summary</h5>
+            <table class="table table-striped">
+                <tbody>
+                    <tr>
+                        <td><strong>BHK</strong></td><td><?= htmlspecialchars($row['bhk']); ?></td>
+                        <td><strong>Property Type</strong></td><td><?= htmlspecialchars($row['type']); ?></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Floor</strong></td><td><?= htmlspecialchars($row['floor']); ?></td>
+                        <td><strong>Total Floor</strong></td><td><?= htmlspecialchars($row['totalfloor']); ?></td>
+                    </tr>
+                    <tr>
+                        <td><strong>City</strong></td><td><?= htmlspecialchars($row['city']); ?></td>
+                        <td><strong>State</strong></td><td><?= htmlspecialchars($row['state']); ?></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- === Agent Details === -->
+            <h5 class="mt-5 mb-4 text">Contact Agent</h5>
+            <div class="agent-contact pt-3 pb-5">
+                <div class="row align-items-center">
+                    <div class="col-sm-3 text-center">
+                        <img src="admin/user/<?= htmlspecialchars($row['uimage']); ?>" alt="Agent Image" class="img-fluid rounded shadow">
+                    </div>
+                    <div class="col-sm-9">
+                        <h6 class="text text-capitalize"><?= htmlspecialchars($row['uname']); ?></h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Phone:</strong> <?= htmlspecialchars($row['uphone']); ?></li>
+                            <li><strong>Email:</strong> <?= htmlspecialchars($row['uemail']); ?></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Appointment Form === -->
+        <div class="appointment-form">
+            <?php if (isset($_SESSION['error'])) { echo '<p style="color:red;">'.htmlspecialchars($_SESSION['error']).'</p>'; unset($_SESSION['error']); } ?>
+            <?php if (isset($_SESSION['success'])) { echo '<p style="color:green;">'.htmlspecialchars($_SESSION['success']).'</p>'; unset($_SESSION['success']); } ?>
+            <h5 class="text mb-4">Book Appointment</h5>
+            <?php if (isset($_SESSION['uid'])) { ?>
+            <form action="add_appointment.php" method="POST">
+                <input type="hidden" name="pid" value="<?= $id; ?>">
+                <input type="hidden" name="uid" value="<?= $_SESSION['uid']; ?>">
+                <input type="hidden" name="agent_uid" value="<?= htmlspecialchars($row['uid']); ?>">
+                <div class="form-group"><label>Property Title:</label><input type="text" name="title" class="form-control" value="<?= htmlspecialchars($row['title']); ?>" readonly></div>
+                <div class="form-group"><label>Date:</label><input type="date" name="date" class="form-control" required></div>
+                <div class="form-group"><label>Time:</label><input type="time" name="time" class="form-control" required></div>
+                <div class="form-group"><label>Message (optional):</label><textarea name="message" class="form-control" rows="3"></textarea></div>
+                <button type="submit" class="btn btn-primary">Book Appointment</button>
+            </form>
+            <?php } else { echo '<p>Please <a href="login.php">login</a> to book an appointment.</p>'; } ?>
+        </div>
+
+        <?php } } } ?>
+    </div>
+
+    <?php include("include/footer.php"); ?>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const sliderWrapper = document.querySelector('.slider-wrapper');
+    const prevBtn = document.querySelector('.prev-btn');
+    const nextBtn = document.querySelector('.next-btn');
+    const slideWidth = 320; // 300px width + 2*10px margin
+
+    prevBtn.addEventListener('click', () => {
+        sliderWrapper.scrollBy({ left: -slideWidth, behavior: 'smooth' });
+    });
+
+    nextBtn.addEventListener('click', () => {
+        sliderWrapper.scrollBy({ left: slideWidth, behavior: 'smooth' });
+    });
+
+    // Optional: swipe support for touch devices
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    sliderWrapper.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - sliderWrapper.offsetLeft;
+        scrollLeft = sliderWrapper.scrollLeft;
+    });
+    sliderWrapper.addEventListener('mouseleave', () => {
+        isDown = false;
+    });
+    sliderWrapper.addEventListener('mouseup', () => {
+        isDown = false;
+    }); 
+    sliderWrapper.addEventListener('mousemove', (e) => {
+        if(!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - sliderWrapper.offsetLeft;
+        const walk = (x - startX) * 2; //scroll-fast
+        sliderWrapper.scrollLeft = scrollLeft - walk;
+    });
+});
+</script>
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/owl.carousel.min.js"></script>
+<script src="js/main.js"></script>
 </body>
-
 </html>

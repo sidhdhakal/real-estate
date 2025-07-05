@@ -16,9 +16,7 @@ if(!isset($_SESSION['auser']))
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
         <title>LM Homes | Admin</title>
 		
-		<!-- Favicon -->
-        <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon.png">
-		
+	
 		<!-- Bootstrap CSS -->
         <link rel="stylesheet" href="assets/css/bootstrap.min.css">
 		
@@ -28,19 +26,44 @@ if(!isset($_SESSION['auser']))
 		<!-- Feathericon CSS -->
         <link rel="stylesheet" href="assets/css/feathericon.min.css">
 		
-		<!-- Datatables CSS -->
-		<link rel="stylesheet" href="assets/plugins/datatables/dataTables.bootstrap4.min.css">
-		<link rel="stylesheet" href="assets/plugins/datatables/responsive.bootstrap4.min.css">
-		<link rel="stylesheet" href="assets/plugins/datatables/select.bootstrap4.min.css">
-		<link rel="stylesheet" href="assets/plugins/datatables/buttons.bootstrap4.min.css">
-		
+
 		<!-- Main CSS -->
         <link rel="stylesheet" href="assets/css/style.css">
 		
-		<!--[if lt IE 9]>
-			<script src="assets/js/html5shiv.min.js"></script>
-			<script src="assets/js/respond.min.js"></script>
-		<![endif]-->
+	 <style>
+		.table{
+         table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+table thead {
+    background-color: #2F80ED;
+    color: #ffffff;
+}
+
+table th, table td {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 15px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+table tbody tr:hover {
+    background-color: #f2f6ff;
+    transition: 0.2s ease-in-out;
+}
+
+table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+		}
+	 </style>
     </head>
     <body>
 	
@@ -52,81 +75,71 @@ if(!isset($_SESSION['auser']))
 			<!-- /Sidebar -->
 			
 			<!-- Page Wrapper -->
-            <div class="page-wrapper">
-                <div class="content container-fluid">
+           <div class="page-wrapper">
+    <div class="content container-fluid">
+        <br><br><br>
 
-					<!-- Page Header -->
-					<div class="page-header">
-						<div class="row">
-							<div class="col">
-								<h3 class="page-title">Contact</h3>
-								<ul class="breadcrumb">
-									<li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-									<li class="breadcrumb-item active">Contact</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-					<!-- /Page Header -->
-					
-					<div class="row">
-						<div class="col-sm-12">
-							<div class="card">
-								<div class="card-header">
-									<h4 class="card-title">Contact List</h4>
-									<?php 
-											if(isset($_GET['msg']))	
-											echo $_GET['msg'];
-											
-										?>
-								</div>
-								<div class="card-body">
+        <!-- Page Header -->
+        <div class="page-header text-center" style="margin-bottom: 30px;">
+            <h3 class="page-title" style="color: #a8a432; font-weight: 700;">Contact</h3>
+        </div>
 
-									<table id="basic-datatable" class="table table-bordered table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Name</th>
-                                                    <th>Email</th>
-                                                    <th>Phone</th>
-													<th>Subject</th>
-                                                    <th>Message</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                        
-                                        
-                                            <tbody>
-											<?php
-													
-												$query=mysqli_query($con,"select * from contact");
-												$cnt=1;
-												while($row=mysqli_fetch_row($query))
-													{
-											?>
-                                                <tr>
-                                                    <td><?php echo $cnt; ?></td>
-                                                    <td><?php echo $row['1']; ?></td>
-                                                    <td><?php echo $row['2']; ?></td>
-                                                    <td><?php echo $row['3']; ?></td>
-                                                    <td><?php echo $row['4']; ?></td>
-													<td><?php echo $row['5']; ?></td>
-                                                    <td><a href="contactdelete.php?id=<?php echo $row['0']; ?>"><button class="btn btn-danger">Delete</button></a></td>
-                                                </tr>
-                                                <?php
-												$cnt=$cnt+1;
-												} 
-												?>
-                                               
-                                            </tbody>
-                                        </table>
-								</div>
-							</div>
-						</div>
-					</div>
-				
-				</div>			
-			</div>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);">
+                    <div class="card-header" style="background-color: #a8a432; color: white; border-radius: 12px 12px 0 0; font-weight: 600;">
+                        <h4 class="card-title" style="margin: 0;">Contact List</h4>
+                    </div>
+                    <div class="card-body" style="background: #fff; border-radius: 0 0 12px 12px; padding: 20px;">
+                        <div class="table-responsive">
+                            <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
+                                <thead style="background-color: #a8a432; color: white; font-weight: 600;">
+                                    <tr>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">#</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Name</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Email</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Phone</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Subject</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Message</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                        $query = mysqli_query($con, "SELECT * FROM contact");
+                                        $cnt = 1;
+                                        while ($row = mysqli_fetch_assoc($query)) {
+                                    ?>
+                                    <tr style="border: 1px solid #ddd; text-align: center; vertical-align: middle;">
+                                        <td style="padding: 12px; border: 1px solid #ddd;"><?php echo $cnt; ?></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600; color: #333; text-align: left;"><?php echo htmlspecialchars($row['name']); ?></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd; text-align: left;"><?php echo htmlspecialchars($row['email']); ?></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd; text-align: left;"><?php echo htmlspecialchars($row['phone']); ?></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd; text-align: left;"><?php echo htmlspecialchars($row['subject']); ?></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd; text-align: left;"><?php echo nl2br(htmlspecialchars($row['message'])); ?></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd;">
+                                            <a href="contactdelete.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure to delete this?');" style="text-decoration: none;">
+                                                <button style="background-color: #d9534f; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                                    Delete
+                                                </button>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <?php
+                                            $cnt++;
+                                        }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 			<!-- /Main Wrapper -->
 
 		

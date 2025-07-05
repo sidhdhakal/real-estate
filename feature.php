@@ -3,173 +3,194 @@ ini_set('session.cache_limiter','public');
 session_cache_limiter(false);
 session_start();
 include("config.php");
-if(!isset($_SESSION['uemail']))
-{
+if(!isset($_SESSION['uemail'])) {
 	header("location:login.php");
-}								
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-<!-- Required meta tags -->
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Meta Tags -->
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<link rel="shortcut icon" href="images/favicon.ico">
-
-<!--	Fonts
-	========================================================-->
-<link href="https://fonts.googleapis.com/css?family=Muli:400,400i,500,600,700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Comfortaa:400,700" rel="stylesheet">
-
-<!--	Css Link
-	========================================================-->
-<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-<link rel="stylesheet" type="text/css" href="css/bootstrap-slider.css">
-<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
-<link rel="stylesheet" type="text/css" href="css/layerslider.css">
-<link rel="stylesheet" type="text/css" href="css/color.css">
-<link rel="stylesheet" type="text/css" href="css/owl.carousel.min.css">
-<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
-<link rel="stylesheet" type="text/css" href="fonts/flaticon/flaticon.css">
-<link rel="stylesheet" type="text/css" href="css/style.css">
-<link rel="stylesheet" type="text/css" href="css/login.css">
-
-<!--	Title
-	=========================================================-->
 <title>Real Estate PHP</title>
+<link rel="shortcut icon" href="images/favicon.ico">
+<link href="https://fonts.googleapis.com/css?family=Muli:400,500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Comfortaa:400,700" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body {
+    font-family: 'Muli', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.page-wrapper {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-family: 'Comfortaa', cursive;
+    font-size: 28px;
+    text-align: center;
+    margin: 40px 0;
+    color: #333;
+}
+
+/* Table Styling */
+.property-table {
+    width: 95%;
+    margin: 0 auto 60px auto;
+    background-color: #fff;
+    border-collapse: collapse;
+    box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.property-table thead {
+    background-color: #222;
+    color: white;
+}
+
+.property-table th, 
+.property-table td {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.property-table img {
+    width: 120px;
+    border-radius: 6px;
+}
+
+.property-info h5 {
+    margin: 5px 0;
+    font-size: 16px;
+}
+
+.property-info a {
+    text-decoration: none;
+    color: #333;
+}
+
+.property-info a:hover {
+    color: #e74934;
+}
+
+.property-location {
+    color: #444;
+    font-size: 13px;
+}
+
+.price {
+    margin-top: 8px;
+    font-weight: bold;
+    color: green;
+}
+
+/* Buttons */
+.btn {
+    padding: 6px 14px;
+    font-size: 13px;
+    text-decoration: none;
+    border-radius: 4px;
+    display: inline-block;
+    color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* Scroll to Top */
+#scroll {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #e74934;
+    color: white;
+    padding: 10px 12px;
+    border-radius: 50%;
+    display: none;
+    z-index: 999;
+}
+
+#scroll i {
+    font-size: 18px;
+}
+</style>
 </head>
 <body>
 
-<!--	Page Loader
-=============================================================
-<div class="page-loader position-fixed z-index-9999 w-100 bg-white vh-100">
-	<div class="d-flex justify-content-center y-middle position-relative">
-	  <div class="spinner-border" role="status">
-		<span class="sr-only">Loading...</span>
-	  </div>
-	</div>
-</div>
---> 
+<div class="page-wrapper">
+    <?php include("include/header.php"); ?>
 
+<h2 class="page-title" style="color: #e74934;">User Listed Property</h2>
 
-<div id="page-wrapper">
-    <div class="row"> 
-        <!--	Header start  -->
-		<?php include("include/header.php");?>
-        <!--	Header end  -->
-        
-        <!--	Banner   --->
-        <div class="banner-full-row page-banner" style="background-image:url('images/breadcromb.jpg');">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h2 class="page-name float-left text-white text-uppercase mt-1 mb-0"><b>User Listed Property</b></h2>
-                    </div>
-                    <div class="col-md-6">
-                        <nav aria-label="breadcrumb" class="float-left float-md-right">
-                            <ol class="breadcrumb bg-transparent m-0 p-0">
-                                <li class="breadcrumb-item text-white"><a href="#">Home</a></li>
-                                <li class="breadcrumb-item active">User Listed Property</li>
-                            </ol>
-                        </nav>
-                    </div>
+    <?php if(isset($_GET['msg'])) echo "<p style='text-align:center; color:green;'>{$_GET['msg']}</p>"; ?>
+
+    <table class="property-table">
+        <thead style="background-color: #e74934;">
+>
+            <tr>
+                <th>Properties</th>
+                <th>BHK</th>
+                <th>Type</th>
+                <th>Added Date</th>
+                <th>Status</th>
+                <th>Update</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php 
+        $uid = $_SESSION['uid'];
+        $query = mysqli_query($con, "SELECT * FROM `property` WHERE uid='$uid'");
+        while($row = mysqli_fetch_array($query)) {
+        ?>
+        <tr>
+            <td>
+                <img src="admin/property/<?php echo $row['18'];?>" alt="property image"><br>
+                <div class="property-info">
+                    <h5><a href="propertydetail.php?pid=<?php echo $row['0'];?>"><?php echo $row['1'];?></a></h5>
+                    <span class="property-location"><i class="fas fa-map-marker-alt"></i> <?php echo $row['14'];?></span>
+                    <div class="price">Rs. <?php echo $row['13'];?></div>
                 </div>
-            </div>
-        </div>
-         <!--	Banner   --->
-		 
-		 
-		<!--	Submit property   -->
-        <div class="full-row bg-gray">
-            <div class="container"><!-- FOR MORE PROJECTS visit: codeastro.com -->
-                    <div class="row mb-5">
-						<div class="col-lg-12">
-							<h2 class="text-secondary double-down-line text-center">User Listed Property</h2>
-							<?php 
-								if(isset($_GET['msg']))	
-								echo $_GET['msg'];	
-							?>
-                        </div>
-					</div><!-- FOR MORE PROJECTS visit: codeastro.com -->
-					<table class="items-list col-lg-12 table-hover" style="border-collapse:inherit;">
-                        <thead>
-                             <tr  class="bg-dark">
-                                <th class="text-white font-weight-bolder">Properties</th>
-                                <th class="text-white font-weight-bolder">BHK</th>
-                                <th class="text-white font-weight-bolder">Type</th>
-                                <th class="text-white font-weight-bolder">Added Date</th>
-								<th class="text-white font-weight-bolder">Status</th>
-                                <th class="text-white font-weight-bolder">Update</th>
-								<th class="text-white font-weight-bolder">Delete</th>
-                             </tr>
-                        </thead>
-                        <tbody>
-						<!-- FOR MORE PROJECTS visit: codeastro.com -->
-							<?php 
-							$uid=$_SESSION['uid'];
-							$query=mysqli_query($con,"SELECT * FROM `property` WHERE uid='$uid'");
-								while($row=mysqli_fetch_array($query))
-								{
-							?>
-                            <tr>
-                                <td>
-									<img src="admin/property/<?php echo $row['18'];?>" alt="pimage">
-                                    <div class="property-info d-table">
-                                        <h5 class="text-secondary text-capitalize"><a href="propertydetail.php?pid=<?php echo $row['0'];?>"><?php echo $row['1'];?></a></h5>
-                                        <span class="font-14 text-capitalize"><i class="fas fa-map-marker-alt text-success font-13"></i>&nbsp; <?php echo $row['14'];?></span>
-                                        <div class="price mt-3">
-											<span class="text-success">$&nbsp;<?php echo $row['13'];?></span>
-										</div>
-                                    </div>
-								</td>
-                                <td><?php echo $row['4'];?></td>
-                                <td class="text-capitalize">For <?php echo $row['5'];?></td>
-                                <td><?php echo $row['29'];?></td>
-								<td class="text-capitalize"><?php echo $row['24'];?></td>
-                                <td><a class="btn btn-info" href="submitpropertyupdate.php?id=<?php echo $row['0'];?>">Update</a></td>
-								<td><a class="btn btn-danger" href="submitpropertydelete.php?id=<?php echo $row['0'];?>">Delete</a></td>
-                            </tr>
-							<?php } ?>
-							<!-- FOR MORE PROJECTS visit: codeastro.com -->
-                        </tbody>
-                    </table>            
-            </div>
-        </div>
-	<!--	Submit property   -->
-        
-        
-        <!--	Footer   start-->
-		<?php include("include/footer.php");?>
-		<!--	Footer   start-->
-        
-        <!-- Scroll to top --> 
-        <a href="#" class="bg-secondary text-white hover-text-secondary" id="scroll"><i class="fas fa-angle-up"></i></a> 
-        <!-- End Scroll To top --> 
-    </div>
-</div><!-- FOR MORE PROJECTS visit: codeastro.com -->
-<!-- Wrapper End --> 
+            </td>
+            <td><?php echo $row['4'];?></td>
+            <td><?php echo ucfirst($row['5']); ?></td>
+            <td><?php echo $row['25'];?></td>
+            <td><?php echo ucfirst($row['23']); ?></td>
+            <td><a class="btn btn-info" href="submitpropertyupdate.php?id=<?php echo $row['0'];?>">Update</a></td>
+            <td><a class="btn btn-danger" href="submitpropertydelete.php?id=<?php echo $row['0'];?>">Delete</a></td>
+        </tr>
+        <?php } ?>
+        </tbody>
+    </table>
 
-<!--	Js Link
-============================================================--> 
-<script src="js/jquery.min.js"></script> 
-<!--jQuery Layer Slider --> 
-<script src="js/greensock.js"></script> 
-<script src="js/layerslider.transitions.js"></script> 
-<script src="js/layerslider.kreaturamedia.jquery.js"></script> 
-<!--jQuery Layer Slider --> 
-<script src="js/popper.min.js"></script> 
-<script src="js/bootstrap.min.js"></script> 
-<script src="js/owl.carousel.min.js"></script> 
-<script src="js/tmpl.js"></script> 
-<script src="js/jquery.dependClass-0.1.js"></script> 
-<script src="js/draggable-0.1.js"></script> 
-<script src="js/jquery.slider.js"></script> 
-<script src="js/wow.js"></script> 
-<script src="js/custom.js"></script>
+    <?php include("include/footer.php"); ?>
+
+</div>
+
 </body>
 </html>

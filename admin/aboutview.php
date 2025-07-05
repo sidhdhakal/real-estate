@@ -45,80 +45,77 @@ if(!isset($_SESSION['auser']))
 				<?php include("header.php"); ?>
 			<!-- /Sidebar -->
 			
-			<!-- Page Wrapper -->
-            <div class="page-wrapper">
-                <div class="content container-fluid">
+			<div class="page-wrapper">
+    <div class="content container-fluid">
+  <br>
+  <br>
+  <br>
+        <!-- Page Header -->
+        <div class="page-header text-center" style="margin-bottom: 30px;">
+            <h3 class="page-title">View About</h3>
+        </div>
 
-					<!-- Page Header -->
-					<div class="page-header">
-						<div class="row">
-							<div class="col">
-								<h3 class="page-title">View About</h3>
-								<ul class="breadcrumb">
-									<li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-									<li class="breadcrumb-item active">View About</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-					<!-- /Page Header -->
-					
-					<div class="row">
-						<div class="col-sm-12">
-							<div class="card">
-								<div class="card-header">
-									<h4 class="card-title">List Of About</h4>
-									<?php 
-											if(isset($_GET['msg']))	
-											echo $_GET['msg'];
-											
-									?>
-								</div>
-								<div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);">
+                    <div class="card-header" style="background-color: #a8a432; color: white; border-radius: 12px 12px 0 0; font-weight: 600;">
+                        <h4 class="card-title" style="margin: 0;">List Of About</h4>
+                        <?php 
+                            if(isset($_GET['msg'])) echo "<div style='margin-top:10px; font-weight: 500;'>" . htmlspecialchars($_GET['msg']) . "</div>";
+                        ?>
+                    </div>
+                    <div class="card-body" style="background: #fff; border-radius: 0 0 12px 12px; padding: 20px;">
+                        <div class="table-responsive">
+                            <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
+                                <thead style="background-color: #a8a432; color: white; font-weight: 600;">
+                                    <tr>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">#</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Title</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Content</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Image</th>
+                                        <th style="padding: 12px; border: 1px solid #ddd;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                        $query = mysqli_query($con, "SELECT * FROM about");
+                                        $cnt = 1;
+                                        while ($row = mysqli_fetch_assoc($query)) {
+                                    ?>
+                                    <tr style="border: 1px solid #ddd; text-align: center; vertical-align: middle;">
+                                        <td style="padding: 12px; border: 1px solid #ddd;"><?php echo $cnt; ?></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600; color: #333;"><?php echo htmlspecialchars($row['title']); ?></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd; text-align: left;"><?php echo nl2br(htmlspecialchars($row['content'])); ?></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd;">
+                                            <img src="upload/<?php echo htmlspecialchars($row['image']); ?>" height="100" width="100" style="border-radius: 8px; object-fit: cover;">
+                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #ddd;">
+                                            <a href="aboutedit.php?id=<?php echo $row['id']; ?>" style="text-decoration: none;">
+                                                <button style="background-color: #a8a432; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 6px;">
+                                                    Edit
+                                                </button>
+                                            </a>
+                                            <a href="aboutdelete.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure to delete this?');" style="text-decoration: none;">
+                                                <button style="background-color: #d9534f; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                                    Delete
+                                                </button>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <?php
+                                            $cnt++;
+                                        }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-									<div class="table-responsive">
-										<table class="table table-stripped table-bordered table-hover">
-											<thead>
-												<tr>
-													<th>#</th>
-													<th>Title</th>
-													<th>Content</th>
-													<th>Image</th>
-													<th>Actions</th>
-													
-												</tr>
-											</thead>
-											<?php
-													
-													$query=mysqli_query($con,"select * from about");
-													$cnt=1;
-													while($row=mysqli_fetch_row($query))
-														{
-											?>
-											<tbody>
-												<tr>
-													<td><?php echo $cnt; ?></td>
-													<td><?php echo $row['1']; ?></td>
-													<td><?php echo $row['2']; ?></td>
-													<td><img src="upload/<?php echo $row['3']; ?>" height="200px" width="200px"></td>
-													<td><a href="aboutedit.php?id=<?php echo $row['0']; ?>"><button class="btn btn-info">Edit</button></a>
-													<a href="aboutdelete.php?id=<?php echo $row['0']; ?>"><button class="btn btn-danger">Delete</button></a></td>
-												</tr>
-											</tbody>
-												<?php
-												$cnt=$cnt+1;
-												} 
-												?>
-										</table>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				
-				</div>			
-			</div>
-			<!-- /Main Wrapper -->
+    </div>          
+</div>
 
 		
 		<!-- jQuery -->
