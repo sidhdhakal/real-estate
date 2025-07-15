@@ -282,7 +282,7 @@ while ($city_row = mysqli_fetch_assoc($cities_query)) {
                 <div class="container h-100 d-flex justify-content-center align-items-center position-relative" style="z-index: 2;">
                     <div class="bg-white rounded-4 shadow-lg p-5 login-wrapper">
                         <h1 class="animated-heading text-dark mb-4 text-center">
-                            <span class="glow-text">घर किनबेच वा भाडामा चाहिएमा हामीलाई सम्झनुहोस्।</span>
+                            <span class="glow-text">घर किनबेच चाहिएमा हामीलाई सम्झनुहोस्।</span>
                         </h1>
                       <!-- You can place this form wherever you need it, for example, on index.php -->
 
