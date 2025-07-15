@@ -19,7 +19,7 @@ spec:
       # Only one container is needed now since Apache is bundled with PHP
       containers:
       - name: php-apache-app
-        image: siddhartha54/real-estate-web:v1
+        image: siddhartha54/real-estate-web:v6
         imagePullPolicy: Always
         ports:
         - containerPort: 80
