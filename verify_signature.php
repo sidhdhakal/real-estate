@@ -4,16 +4,11 @@
  * Verifies a digital signature against the provided data and public key.
  */
 function verifyDigitalSignature($data, $base64Signature, $publicKeyString) {
-    // This function is correct.
     $signature = base64_decode($base64Signature);
     $publicKey = openssl_pkey_get_public($publicKeyString);
 
     if (!$publicKey) {
         return ['success' => false, 'message' => "❌ Invalid public key"];
-    }..
-
-    {
-
     }
 
     $verified = openssl_verify($data, $signature, $publicKey, OPENSSL_ALGO_SHA256);
@@ -26,6 +21,7 @@ function verifyDigitalSignature($data, $base64Signature, $publicKeyString) {
         return ['success' => false, 'message' => "⚠️ Verification error: " . openssl_error_string()];
     }
 }
+
 
 /**
  * Generates a new RSA public/private key pair.
