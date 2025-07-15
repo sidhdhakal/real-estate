@@ -1,0 +1,45 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+  namespace: real-estate-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        ports:
+        - containerPort: 3306
+        env:
+        # --- IMPORTANT: Change these values ---
+        - name: MYSQL_ROOT_PASSWORD
+          value: pass
+        - name: MYSQL_DATABASE
+          value: realestatephp
+        - name: MYSQL_USER
+          value: user
+        - name: MYSQL_PASSWORD
+          value: pass
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  namespace: real-estate-app
+spec:
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP

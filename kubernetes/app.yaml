@@ -1,0 +1,50 @@
+# kubernetes/app.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: real-estate-app-deployment
+  namespace: real-estate-app
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: real-estate-app
+  template:
+    metadata:
+      labels:
+        app: real-estate-app
+    spec:
+      # Only one container is needed now since Apache is bundled with PHP
+      containers:
+      - name: php-apache-app
+        image: siddhartha54/real-estate-web:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: DB_HOST
+          value: "mysql-service"
+        - name: DB_DATABASE
+          value: "realestatephp"
+        - name: DB_USERNAME
+          value: user  
+        - name: DB_PASSWORD
+          value: pass
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: real-estate-app-service
+  namespace: real-estate-app
+spec:
+  # NodePort makes the app accessible from outside the cluster for testing
+  type: NodePort
+  selector:
+    app: real-estate-app
+  ports:
+    - protocol: TCP
+      port: 80        # Internal port for the service
+      targetPort: 80  # Port on the php-apache-app container
+      # A random high port will be assigned on the node (e.g., 30000-32767)
